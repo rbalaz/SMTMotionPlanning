@@ -8,7 +8,7 @@ namespace SMTMotionPlanning
 {
     class Agent
     {
-        private Coordinate currentLocation;
+        public Coordinate currentLocation { get; private set; }
         private int width;
         private int length;
 
@@ -17,11 +17,6 @@ namespace SMTMotionPlanning
             this.length = length;
             currentLocation = startLocation;
             this.width = width;
-        }
-
-        public Coordinate getLocation()
-        {
-            return currentLocation;
         }
     }
 }

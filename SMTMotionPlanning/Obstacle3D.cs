@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace SMTMotionPlanning
 {
-    class Obstacle3D : Obstacle
+    class Obstacle3D : RectangularObstacle
     {
         private int height;
 
@@ -14,7 +14,6 @@ namespace SMTMotionPlanning
         {
             this.height = height;
         }
-
 
     }
 }

@@ -33,6 +33,10 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="MathNet.Numerics, Version=3.13.1.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\MathNet.Numerics.3.13.1\lib\net40\MathNet.Numerics.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
     <Reference Include="Microsoft.Z3">
       <HintPath>dll\Microsoft.Z3.dll</HintPath>
     </Reference>
@@ -51,6 +55,7 @@
   <ItemGroup>
     <Compile Include="Agent.cs" />
     <Compile Include="Coordinate.cs" />
+    <Compile Include="EllipticalObstacle.cs" />
     <Compile Include="Form1.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -58,7 +63,12 @@
       <DependentUpon>Form1.cs</DependentUpon>
     </Compile>
     <Compile Include="Initializer.cs" />
+    <Compile Include="LineSegment.cs" />
     <Compile Include="Obstacle.cs" />
+    <Compile Include="PolygonalObstacle.cs" />
+    <Compile Include="Polynom.cs" />
+    <Compile Include="RealCoordinate.cs" />
+    <Compile Include="RectangularObstacle.cs" />
     <Compile Include="Obstacle3D.cs" />
     <Compile Include="PathFinding.cs" />
     <Compile Include="Program.cs" />
@@ -66,6 +76,7 @@
     <Compile Include="Space.cs" />
     <Compile Include="Space2D.cs" />
     <Compile Include="Space3D.cs" />
+    <Compile Include="SplineObstacle.cs" />
     <EmbeddedResource Include="Form1.resx">
       <DependentUpon>Form1.cs</DependentUpon>
     </EmbeddedResource>
@@ -78,6 +89,7 @@
       <AutoGen>True</AutoGen>
       <DependentUpon>Resources.resx</DependentUpon>
     </Compile>
+    <None Include="packages.config" />
     <None Include="Properties\Settings.settings">
       <Generator>SettingsSingleFileGenerator</Generator>
       <LastGenOutput>Settings.Designer.cs</LastGenOutput>

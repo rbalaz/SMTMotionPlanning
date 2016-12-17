@@ -3,37 +3,18 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-
+using Microsoft.Z3;
 namespace SMTMotionPlanning
 {
-    public class Obstacle
+    public abstract class Obstacle
     {
-        // All obstacles are presumed to be rectangular
-        // Location of the obstacle is defined with the top-leftmost corner of the obstacle
-        private Coordinate location;
-        private int length;
-        private int width;
+        public enum ObstacleType { Ellipse,Rectangle,Polygon,Spline}
 
-        public Obstacle(int length, int width, Coordinate location)
-        {
-            this.length = length;
-            this.width = width;
-            this.location = location;
-        }
+        public ObstacleType type { get; set; }
 
-        public int getWidth()
+        public Obstacle(ObstacleType type)
         {
-            return width;
-        }
-
-        public int getLength()
-        {
-            return length;
-        }
-
-        public Coordinate getLocation()
-        {
-            return location;
+            this.type = type;
         }
     }
 }

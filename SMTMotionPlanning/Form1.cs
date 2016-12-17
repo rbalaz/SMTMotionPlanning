@@ -25,6 +25,7 @@ namespace SMTMotionPlanning
         private Graphics graphicsObj;
         private bool pathCalculated;
         private bool runIssue;
+        private bool pathDrawn;
         private Space world;
         private Agent agent;
         private int distance;
@@ -39,6 +40,7 @@ namespace SMTMotionPlanning
             graphicsObj = tableLayoutPanel1.CreateGraphics();
             pathCalculated = false;
             runIssue = false;
+            pathDrawn = false;
         }
 
         public Form1(List<Obstacle> obstacles) : base()
@@ -68,7 +70,7 @@ namespace SMTMotionPlanning
                     {
                         world = new Space2D(width, length);
                         foreach (Obstacle o in obstacles)
-                            world.addObstacle(o);
+                            world.obstacles.Add(o);
                     }
                     else
                         showParameterError();
@@ -76,15 +78,13 @@ namespace SMTMotionPlanning
                 else
                 {
                     foreach (Obstacle o in obstacles)
-                        world.addObstacle(o);
+                        world.obstacles.Add(o);
                     scaleForm();
                     graphicsObj = tableLayoutPanel1.CreateGraphics();
                 }
             }
             else
                 showParameterError();
-            Invalidate();
-            Refresh();
         }
 
         private void resetButton_Click(object sender, EventArgs e)
@@ -107,7 +107,7 @@ namespace SMTMotionPlanning
                 path = new List<Coordinate>();
                 for (int i = 1; i < 100; i++)
                 {
-                    PathFinding finder = new PathFinding(agent.getLocation(), goalLocation, i, distance, world);
+                    PathFinding finder = new PathFinding(agent.currentLocation, goalLocation, i, distance, world);
                     try
                     {
                         path.AddRange(finder.findPath());
@@ -183,9 +183,15 @@ namespace SMTMotionPlanning
 
         private void obstacleLoader_Click(object sender, EventArgs e)
         {
-            // Expected format used for obstacles in file:
-            // o lefttopX lefttopY width length
+            // Expected format used for rectangular obstacles in file:
+            // r lefttopX lefttopY width length
             // Example: o 10 10 50 20
+            // Expected format used for polygonal obstacles in file:
+            // p x1 y1 ... xn yn
+            // Expected format used for spline obstacles in file:
+            // s x1 y1 ... xn yn
+            // Expected format used for elliptical obstacles in file:
+            // e sx sy width length
             obstacles = new List<Obstacle>();
             if (openFileDialog1.ShowDialog() == DialogResult.OK)
             {
@@ -194,9 +200,28 @@ namespace SMTMotionPlanning
                 while ((line = sr.ReadLine()) != null)
                 {
                     string[] obstacleParts = line.Split(' ');
-                    // Fix: 21.10.2016. Length and width of obstacle was swapped with each other.
-                    obstacles.Add(new Obstacle(int.Parse(obstacleParts[4]), int.Parse(obstacleParts[3]),
-                        new Coordinate(int.Parse(obstacleParts[1]), int.Parse(obstacleParts[2]))));
+                    if(obstacleParts[0].Equals("r"))
+                        obstacles.Add(new RectangularObstacle(int.Parse(obstacleParts[4]), int.Parse(obstacleParts[3]),
+                            new Coordinate(int.Parse(obstacleParts[1]), int.Parse(obstacleParts[2]))));
+                    if (obstacleParts[0].Equals("p"))
+                    {
+                        List<Coordinate> points = new List<Coordinate>();
+                        for (int i = 1; i < obstacleParts.Length; i = i + 2)
+                            points.Add(new Coordinate(int.Parse(obstacleParts[i]), int.Parse(obstacleParts[i + 1])));
+                        obstacles.Add(new PolygonalObstacle(points));
+                    }
+                    if (obstacleParts[0].Equals("s"))
+                    {
+                        List<Coordinate> points = new List<Coordinate>();
+                        for (int i = 1; i < obstacleParts.Length; i = i + 2)
+                            points.Add(new Coordinate(int.Parse(obstacleParts[i]), int.Parse(obstacleParts[i + 1])));
+                        obstacles.Add(new SplineObstacle(points));
+                    }
+                    if (obstacleParts[0].Equals("e"))
+                    {
+                        obstacles.Add(new EllipticalObstacle(new Coordinate(int.Parse(obstacleParts[1]), 
+                            int.Parse(obstacleParts[2])), int.Parse(obstacleParts[3]), int.Parse(obstacleParts[4])));
+                    }
                 }
                 sr.Close();
             }
@@ -207,7 +232,7 @@ namespace SMTMotionPlanning
             if (obstacles != null)
             {
                 foreach (Obstacle o in obstacles)
-                    drawRectangle(o);
+                    drawObstacle(o);
             }
             if (agent != null)
             {
@@ -215,10 +240,36 @@ namespace SMTMotionPlanning
             }
             if (pathCalculated && runIssue)
             {
-                foreach (Coordinate c in path.Skip(1))
-                {
-                    prettyPathDrawing(c);
-                }
+                if (pathDrawn == false)
+                    foreach (Coordinate c in path.Skip(1))
+                    {
+                        prettyPathDrawing(c);
+                        pathDrawn = true;
+                    }
+                else
+                    foreach (Coordinate c in path.Skip(1))
+                    {
+                        drawPathSegment(path.ElementAt(path.LastIndexOf(c) - 1), c);
+                    }
+            }
+        }
+
+        private void drawObstacle(Obstacle o)
+        {
+            switch (o.type)
+            {
+                case Obstacle.ObstacleType.Rectangle:
+                    drawRectangularObstacle((RectangularObstacle) o);
+                    break;
+                case Obstacle.ObstacleType.Polygon:
+                    drawPolygonalObstacle((PolygonalObstacle) o);
+                    break;
+                case Obstacle.ObstacleType.Ellipse:
+                    drawEllipticalObstacle((EllipticalObstacle) o);
+                    break;
+                case Obstacle.ObstacleType.Spline:
+                    drawSplineObstacle((SplineObstacle) o);
+                    break;
             }
         }
 
@@ -244,13 +295,44 @@ namespace SMTMotionPlanning
             Application.Exit();
         }
 
-        private void drawRectangle(Obstacle o)
+        private void drawRectangularObstacle(RectangularObstacle o)
         {
             // 21.10.2016 fixed wrong parameter order for rectangles
-            Coordinate relLoc = calculateRelativeCanvasPosition(o.getLocation());
-            Rectangle rectangle = new Rectangle(relLoc.getX(), relLoc.getY(), o.getWidth(), o.getLength());
+            Coordinate relLoc = calculateRelativeCanvasPosition(o.location);
+            Rectangle rectangle = new Rectangle(relLoc.x, relLoc.y, o.width, o.length);
             graphicsObj.DrawRectangle(obstaclePen, rectangle);
             graphicsObj.FillRectangle(brush, rectangle);
+        }
+
+        private void drawPolygonalObstacle(PolygonalObstacle o)
+        {
+            Coordinate[] relLocs = new Coordinate[o.points.Count];
+            for (int i = 0; i < o.points.Count; i++)
+            {
+                Coordinate c = calculateRelativeCanvasPosition(o.points[i]);
+                relLocs[i] = c;
+            }
+            graphicsObj.DrawPolygon(obstaclePen, relLocs.Select(item => new Point(item.x, item.y)).ToArray());
+        }
+
+        private void drawEllipticalObstacle(EllipticalObstacle o)
+        {
+            Coordinate relLoc = calculateRelativeCanvasPosition(new Coordinate(o.location.x - o.width/2,
+                o.location.y - o.length/2));
+            Rectangle rectangle = new Rectangle(relLoc.x, relLoc.y, o.width, o.length);
+            graphicsObj.DrawEllipse(obstaclePen, rectangle);
+            graphicsObj.FillEllipse(brush, rectangle);
+        }
+
+        private void drawSplineObstacle(SplineObstacle o)
+        {
+            Coordinate[] relLocs = new Coordinate[o.points.Count];
+            for (int i = 0; i < o.points.Count; i++)
+            {
+                Coordinate c = calculateRelativeCanvasPosition(o.points[i]);
+                relLocs[i] = c;
+            }
+            graphicsObj.DrawCurve(obstaclePen, relLocs.Select(item => new Point(item.x, item.y)).ToArray());
         }
 
         private void drawPathSegment(Coordinate c)
@@ -259,15 +341,15 @@ namespace SMTMotionPlanning
             Coordinate predecessor = path[path.IndexOf(c) - 1];
             Coordinate relativePredecessorLocation = calculateRelativeCanvasPosition(predecessor);
             Coordinate relativeSuccessorLocation = calculateRelativeCanvasPosition(c); 
-            graphicsObj.DrawLine(pathPen, relativePredecessorLocation.getX(), relativePredecessorLocation.getY(), 
-                relativeSuccessorLocation.getX(), relativeSuccessorLocation.getY());
+            graphicsObj.DrawLine(pathPen, relativePredecessorLocation.x, relativePredecessorLocation.y, 
+                relativeSuccessorLocation.x, relativeSuccessorLocation.y);
         }
         private void drawPathSegment(Coordinate c1, Coordinate c2)
         {
             Coordinate relativePredecessorLocation = calculateRelativeCanvasPosition(c1);
             Coordinate relativeSuccessorLocation = calculateRelativeCanvasPosition(c2);
-            graphicsObj.DrawLine(pathPen, relativePredecessorLocation.getX(), relativePredecessorLocation.getY(),
-                relativeSuccessorLocation.getX(), relativeSuccessorLocation.getY());
+            graphicsObj.DrawLine(pathPen, relativePredecessorLocation.x, relativePredecessorLocation.y,
+                relativeSuccessorLocation.x, relativeSuccessorLocation.y);
         }
 
         private void prettyPathDrawing(Coordinate c)
@@ -279,26 +361,26 @@ namespace SMTMotionPlanning
             int yDistance = Coordinate.getYDistanceBetweenCoordinates(c, predecessor);
             if (xDistance != 0)
             {
-                int xChange = predecessor.getX() < c.getX() ? 1 : -1;
+                int xChange = predecessor.x < c.x ? 1 : -1;
                 Coordinate[] segments = new Coordinate[xDistance];
                 segments[0] = predecessor;
                 segments[xDistance - 1] = c;
                 for (int i = 1; i < xDistance - 1; i++)
                 {
-                    segments[i] = new Coordinate(new int[] { segments[i - 1].getX() + xChange, segments[i - 1].getY() });
+                    segments[i] = new Coordinate(new int[] { segments[i - 1].x + xChange, segments[i - 1].y });
                     drawPathSegment(segments[i - 1], segments[i]);
                     Thread.Sleep((int)Math.Ceiling((double)(1000 / xDistance)));
                 }
             }
             else
             {
-                int yChange = predecessor.getY() < c.getY() ? 1 : -1;
+                int yChange = predecessor.y < c.y ? 1 : -1;
                 Coordinate[] segments = new Coordinate[yDistance];
                 segments[0] = predecessor;
                 segments[yDistance - 1] = c;
                 for (int i = 1; i < yDistance - 1; i++)
                 {
-                    segments[i] = new Coordinate(new int[] { segments[i - 1].getX(), segments[i - 1].getY() + yChange});
+                    segments[i] = new Coordinate(new int[] { segments[i - 1].x, segments[i - 1].y + yChange});
                     drawPathSegment(segments[i - 1], segments[i]);
                     Thread.Sleep((int)Math.Ceiling((double)(1000 / yDistance)));
                 }
@@ -310,11 +392,11 @@ namespace SMTMotionPlanning
             // 19.10.2016 Fixed wrong referencing for start and goal location.
             // 21.10.2016 Fixed wrong parameter order in start and finish location
             // 21.10.2016 Added missing relative canvas position for start and goal location
-            Coordinate relativeStartLocation = calculateRelativeCanvasPosition(agent.getLocation());
+            Coordinate relativeStartLocation = calculateRelativeCanvasPosition(agent.currentLocation);
             Coordinate relativeGoalLocation = calculateRelativeCanvasPosition(goalLocation);
-            Rectangle start = new Rectangle(relativeStartLocation.getX() - distance/2, relativeStartLocation.getY() - distance/2, 
+            Rectangle start = new Rectangle(relativeStartLocation.x - distance/2, relativeStartLocation.y - distance/2, 
                 distance, distance);
-            Rectangle finish = new Rectangle(relativeGoalLocation.getX() - distance/2, relativeGoalLocation.getY() - distance/2,
+            Rectangle finish = new Rectangle(relativeGoalLocation.x - distance/2, relativeGoalLocation.y - distance/2,
                 distance, distance);
             Brush finishBrush = new SolidBrush(Color.Blue);
             Pen finishPen = new Pen(Color.Green, 5);
@@ -333,8 +415,8 @@ namespace SMTMotionPlanning
             // The actual [0,0] point is not going to be left-top corner of the form, but the left-top corner
             // of the canvas itself, leaving out parts of the form where the controls are
 
-            double relativeX = location.getX() + Math.Ceiling((double)(Width / 5));
-            int relativeY = location.getY();
+            double relativeX = location.x + Math.Ceiling((double)(Width / 5));
+            int relativeY = location.y;
 
             return new Coordinate((int)relativeX, relativeY);
         }
@@ -342,8 +424,8 @@ namespace SMTMotionPlanning
         private void scaleForm()
         {
             // Minimum Form size: 640 * 480
-            double newWidth = world.getWidth() / 0.8 + 16;
-            double newLength = world.getLength() / 0.8 + 18;
+            double newWidth = world.width / 0.8 + 16;
+            double newLength = world.length / 0.8 + 18;
 
             if (newWidth != Width || newWidth != Height)
             {

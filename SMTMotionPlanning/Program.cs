@@ -22,7 +22,6 @@ namespace SMTMotionPlanning
             form.Height = 480;
             form.Text = "Motion Planning with SMT";
             Application.Run(form);
-
         }
     }
 }

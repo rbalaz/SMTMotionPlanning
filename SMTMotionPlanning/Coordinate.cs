@@ -8,54 +8,46 @@ namespace SMTMotionPlanning
 {
     public class Coordinate
     {
-        class DimensionNotSupportedException : Exception { }
-
-        private int[] coordinates;
+        public int x { get; private set; }
+        public int y { get; private set; }
+        public int z { get; private set; }
         private bool is3DWorld;
         public bool Is3DWorld { get; }
 
         public Coordinate(int[] coordinates)
         {
-            this.coordinates = coordinates;
-            is3DWorld = (this.coordinates.Length == 3);
+            x = coordinates[0];
+            y = coordinates[1];
+            if (coordinates.Length == 3)
+                z = coordinates[2];
+
+            is3DWorld = (coordinates.Length == 3);
         }
 
         public Coordinate(int x, int y)
         {
-            this.coordinates = new int[] { x, y };
+            this.x = x;
+            this.y = y;
         }
 
-        public int getX()
+        public Coordinate(int x, int y, int z):this(x, y)
         {
-            return coordinates[0];
-        }
-
-        public int getY()
-        {
-            return coordinates[1];
-        }
-
-        public int getZ()
-        {
-            if (coordinates.Length < 3)
-                throw new DimensionNotSupportedException();
-            else
-                return coordinates[2];
+            this.z = z;
         }
 
         public string toString()
         {
-            return "x: " + coordinates[0] + "   y:" + coordinates[1];
+            return "x: " + x + "   y:" + y;
         }
 
         public static int getXDistanceBetweenCoordinates(Coordinate c1, Coordinate c2)
         {
-            return Math.Abs(c1.getX() - c2.getX());
+            return Math.Abs(c1.x - c2.x);
         }
 
         public static int getYDistanceBetweenCoordinates(Coordinate c1, Coordinate c2)
         {
-            return Math.Abs(c1.getY() - c2.getY());
+            return Math.Abs(c1.y - c2.y);
         }
     }
 }

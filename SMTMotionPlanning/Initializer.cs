@@ -29,14 +29,14 @@ namespace SMTMotionPlanning
             if (type.Equals("basic"))
             {
                 Space2D world = new Space2D(640, 480);
-                Obstacle front = new Obstacle(40, 30, new Coordinate(new int[] { 40, 50 }));
-                Obstacle middle = new Obstacle(70, 60, new Coordinate(new int[] { 240, 90 }));
-                Obstacle back = new Obstacle(50, 50, new Coordinate(new int[] { 500, 120 }));
-                world.addObstacle(front);
-                world.addObstacle(middle);
-                world.addObstacle(back);
+                RectangularObstacle front = new RectangularObstacle(40, 30, new Coordinate(new int[] { 40, 50 }));
+                RectangularObstacle middle = new RectangularObstacle(70, 60, new Coordinate(new int[] { 240, 90 }));
+                RectangularObstacle back = new RectangularObstacle(50, 50, new Coordinate(new int[] { 500, 120 }));
+                world.obstacles.Add(front);
+                world.obstacles.Add(middle);
+                world.obstacles.Add(back);
                 Agent agent = new Agent(new Coordinate(new int[] { 10, 10 }),10 ,10);
-                world.addAgent(agent);
+                world.agent = agent;
 
                 return world;                       
             }
