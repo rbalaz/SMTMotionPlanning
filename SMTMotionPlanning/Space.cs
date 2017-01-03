@@ -13,7 +13,7 @@ namespace SMTMotionPlanning
         // top left corner of the screen and x and y incrementing down or right respectively.
         public int width { get; set; }
         public int length { get; set; }
-        public List<Obstacle> obstacles { get; private set; }
+        public List<Obstacle> obstacles { get; set; }
         public Agent agent { get; set; }
 
         public Space(int width, int length)

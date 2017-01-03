@@ -30,5 +30,63 @@ namespace SMTMotionPlanning
             var p = r.Inverse().Multiply(q.TransposeThisAndMultiply(yv));
             return p.Column(0).ToArray();
         }
+
+        public List<RectangularObstacle> transformObstacle(int obstaclePassDistance)
+        {
+            List<RectangularObstacle> obstacles = new List<RectangularObstacle>();
+            if (points.Count > 4)
+            {
+                int currentCount = 0;
+                List<SplineObstacle> splitObstacles = new List<SplineObstacle>();
+                while (currentCount + 3 < points.Count)
+                {
+                    List<Coordinate> points = this.points.Skip(currentCount).Take(3).ToList();
+                    splitObstacles.Add(new SplineObstacle(points));
+                    currentCount += 3;
+                }
+                foreach (SplineObstacle spline in splitObstacles)
+                    obstacles = obstacles.Concat(handleSplineObstacle(spline, obstaclePassDistance)).ToList();
+            }
+            else
+                obstacles = obstacles.Concat(handleSplineObstacle(this, obstaclePassDistance)).ToList();
+
+            return obstacles;
+        }
+
+        public List<RectangularObstacle> handleSplineObstacle(SplineObstacle obstacle, int obstaclePassDistance)
+        {
+            double[] x = obstacle.points.Select(item => (double)item.x).ToArray();
+            double[] y = obstacle.points.Select(item => (double)item.y).ToArray();
+
+            Polynom poly = new Polynom(Polyfit(x, y, obstacle.points.Count - 1).Reverse().ToArray());
+            RealCoordinate current = new RealCoordinate(obstacle.points[0].x, obstacle.points[0].y - obstaclePassDistance);
+            RealCoordinate end = new RealCoordinate(obstacle.points[obstacle.points.Count - 1].x,
+                obstacle.points[obstacle.points.Count - 1].y);
+            List<RectangularObstacle> obstacles = new List<RectangularObstacle>();
+            RectangularObstacle firstObstacle = new RectangularObstacle(2 * obstaclePassDistance, obstaclePassDistance,
+                new RealCoordinate(current.x - obstaclePassDistance, current.y - obstaclePassDistance));
+            obstacles.Add(firstObstacle);
+            do
+            {
+                RectangularObstacle rect = new RectangularObstacle(2 * obstaclePassDistance, 2,
+                    new RealCoordinate(current.x, current.y));
+                obstacles.Add(rect);
+                if (current.x + 2 <= end.x)
+                {
+                    current.x += 2;
+                    current.y = poly.getPolynomValue(current.x) - obstaclePassDistance;
+                }
+                else
+                {
+                    current.x = end.x;
+                    current.y = end.y;
+                }
+            } while (RealCoordinate.getDistanceBetweenCoordinates(current, end) != 0);
+            RectangularObstacle lastObstacle = new RectangularObstacle(2 * obstaclePassDistance, obstaclePassDistance,
+                new RealCoordinate(current.x, current.y));
+            obstacles.Add(lastObstacle);
+
+            return obstacles;
+        }
     }
 }

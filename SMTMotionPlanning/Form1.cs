@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.IO;
 using System.Threading;
+using System.Diagnostics;
 
 namespace SMTMotionPlanning
 {
@@ -104,9 +105,15 @@ namespace SMTMotionPlanning
             {
                 // 25.10.2016 fixed cycle trying to create path with 0 segments
                 // 25.10.2016 fixed cycle not ending when path was found(added break sentence)
+                FileStream stream = new FileStream("compTime.txt", FileMode.Create, FileAccess.Write);
+                StreamWriter writer = new StreamWriter(stream);
+                Stopwatch watch = new Stopwatch();
                 path = new List<Coordinate>();
-                for (int i = 1; i < 100; i++)
+                transformNonRectangularObstacles();
+                for (int i = 1; i <= 100; i++)
                 {
+                    watch.Reset();
+                    watch.Start();
                     PathFinding finder = new PathFinding(agent.currentLocation, goalLocation, i, distance, world);
                     try
                     {
@@ -114,11 +121,14 @@ namespace SMTMotionPlanning
                     }
                     catch (PathFinding.TestFailedException)
                     {
+                        watch.Stop();
+                        writer.WriteLine(watch.ElapsedMilliseconds);
                         continue;
                     }
                     break;
                 }
-                // Does adding null to list increase its range?
+                writer.Close();
+                stream.Close();
                 if (path.Count == 0)
                     showPathError("There is no clear available path to goal location.");
                 else
@@ -225,6 +235,28 @@ namespace SMTMotionPlanning
                 }
                 sr.Close();
             }
+        }
+
+        private void transformNonRectangularObstacles()
+        {
+            List<Obstacle> newObstacles = new List<Obstacle>();
+            foreach (Obstacle o in world.obstacles)
+            {
+                if (o.type == Obstacle.ObstacleType.Polygon)
+                {
+                    List<RectangularObstacle> discreteObstacles = ((PolygonalObstacle)o).transformObstacle(distance);
+                    newObstacles = newObstacles.Concat(discreteObstacles).ToList();
+                }
+                else if (o.type == Obstacle.ObstacleType.Spline)
+                {
+                    List<RectangularObstacle> discreteObstacles = ((SplineObstacle)o).transformObstacle(distance);
+                    newObstacles = newObstacles.Concat(discreteObstacles).ToList();
+                }
+                else
+                    newObstacles.Add(o);
+            }
+
+            world.obstacles = newObstacles;
         }
 
         protected override void OnPaint(PaintEventArgs e)
