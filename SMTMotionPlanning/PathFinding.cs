@@ -42,7 +42,6 @@ namespace SMTMotionPlanning
 
             Context ctx = new Context();
 
-            // Fix 14.10.2016: Fixed conflicting names of source and destination variables
             IntExpr[] sourcesX = new IntExpr[pathSegments];
             IntExpr[] sourcesY = new IntExpr[pathSegments];
             for (int i = 0; i < pathSegments; i++)
@@ -66,13 +65,11 @@ namespace SMTMotionPlanning
             BoolExpr avoidingObstacles = avoidObstacles(world, ctx, sourcesX, sourcesY, destinationsX, destinationsY);
 
             Solver s = ctx.MkSolver();
-            // Fix 14.10.2016: Fixed wrong asserting of partial, unrelated or unfinished expressions 
             s.Assert(worldSizeConstraints);
             s.Assert(movementConstraints);
             s.Assert(prerequisitesConstraints);
             s.Assert(joiningPathSegments);
             s.Assert(avoidingObstacles);
-            // 14.10.2016 12.04: First compilation with model satisfiability confirmed.
             Status status = s.Check();
             if (status != Status.SATISFIABLE)
                 throw new TestFailedException();
@@ -113,7 +110,6 @@ namespace SMTMotionPlanning
         {
             // First input into SMT solver: Field of constrainsConj.
             // Contains constrains for movement so that agent will not try to move out of world, surpassing one its parameters
-            // Fix 14.10.2016: Expressions lacked any logical symbols to join them in a conjunction
             BoolExpr[] constrains = new BoolExpr[8 * pathSegments];
             IntExpr worldLength = ctx.MkInt(world.length);
             IntExpr worldWidth = ctx.MkInt(world.width);
@@ -205,13 +201,10 @@ namespace SMTMotionPlanning
                         obstacles.Add(handleEllipticalObstacle((EllipticalObstacle)world.obstacles[i], ctx, destinationsX, destinationsY, sourcesX, sourcesY));
                         break;
                     case Obstacle.ObstacleType.Rectangle:
-                        obstacles.Add(handleRectangularObstacle((RectangularObstacle)world.obstacles[i], ctx, sourcesX, sourcesY, destinationsX, destinationsY));
-                        break;
-                    case Obstacle.ObstacleType.Polygon:
-                        obstacles.Add(handlePolygonalObstacle((PolygonalObstacle)world.obstacles[i], ctx, sourcesX, sourcesY, destinationsX, destinationsY));
-                        break;
-                    case Obstacle.ObstacleType.Spline:
-                        obstacles.Add(handleSplineObstacle((SplineObstacle)world.obstacles[i], ctx, sourcesX, sourcesY, destinationsX, destinationsY));
+                        if(((RectangularObstacle)(world.obstacles[i])).realLocation != null)
+                            obstacles.Add(handleRealRectangularObstacle((RectangularObstacle)world.obstacles[i], ctx, sourcesX, sourcesY, destinationsX, destinationsY));
+                        else
+                            obstacles.Add(handleRectangularObstacle((RectangularObstacle)world.obstacles[i], ctx, sourcesX, sourcesY, destinationsX, destinationsY));
                         break;
                 }
             }
@@ -288,126 +281,6 @@ namespace SMTMotionPlanning
             }
 
             return ctx.MkAnd(avoidingObstaclesCombined);
-        }
-
-        private BoolExpr handlePolygonalObstacle(PolygonalObstacle obstacle, Context ctx, IntExpr[] sourcesX, IntExpr[] sourcesY, IntExpr[] destinationsX, IntExpr[] destinationsY)
-        {
-            List<LineSegment> lines = obstacle.getLines();
-            List<BoolExpr> avoidingLines = new List<BoolExpr>();
-            for (int i = 0; i < lines.Count; i++)
-            {
-                if (lines[i].isHorizontal)
-                {
-                    int leftX = (lines[i].start.x < lines[i].end.x ? lines[i].start.x : lines[i].end.x) - obstaclePassDistance;
-                    int leftY = lines[i].start.y - obstaclePassDistance;
-                    RectangularObstacle rectangle = new RectangularObstacle(Coordinate.getXDistanceBetweenCoordinates
-                        (lines[i].start, lines[i].end) + 2 * obstaclePassDistance, 2 * obstaclePassDistance, new Coordinate(leftX, leftY));
-                    avoidingLines.Add(handleRectangularObstacle(rectangle, ctx, sourcesX, sourcesY, destinationsX, destinationsY));
-                }
-                else if (lines[i].isVertical)
-                {
-                    int leftY = (lines[i].start.y < lines[i].end.y ? lines[i].start.y : lines[i].end.y) - obstaclePassDistance;
-                    int leftX = lines[i].start.x - obstaclePassDistance;
-                    RectangularObstacle rectangle = new RectangularObstacle(2 * obstaclePassDistance,
-                        Coordinate.getYDistanceBetweenCoordinates(lines[i].start, lines[i].end) + 2 * obstaclePassDistance, new Coordinate(leftX, leftY));
-                    avoidingLines.Add(handleRectangularObstacle(rectangle, ctx, sourcesX, sourcesY, destinationsX, destinationsY));
-                }
-                else
-                {
-                    List<RectangularObstacle> segmentCases = encaseLineSegment(lines[i]);
-                    foreach (RectangularObstacle rec in segmentCases)
-                        avoidingLines.Add(handleRealRectangularObstacle(rec, ctx, sourcesX, sourcesY, destinationsX, destinationsY));
-                }
-            }
-            return ctx.MkAnd(avoidingLines.ToArray());
-        }
-
-        private BoolExpr handleSplineObstacle(SplineObstacle obstacle, Context ctx, IntExpr[] sourcesX, IntExpr[] sourcesY, IntExpr[] destinationsX, IntExpr[] destinationsY)
-        {
-            if (obstacle.points.Count > 4)
-            {
-                SplineObstacle firstSegment = new SplineObstacle(obstacle.points.Take(3).ToList());
-                SplineObstacle secondSegment = new SplineObstacle(obstacle.points.Skip(3).ToList());
-                BoolExpr first = handleSplineObstacle(firstSegment, ctx, sourcesX, sourcesY, destinationsX, destinationsY);
-                BoolExpr second = handleSplineObstacle(secondSegment, ctx, sourcesX, sourcesY, destinationsX, destinationsY);
-                return ctx.MkAnd(first, second);
-            }
-            else
-            {
-                double[] x = obstacle.points.Select(item => (double)item.x).ToArray();
-                double[] y = obstacle.points.Select(item => (double)item.y).ToArray();
-
-                Polynom poly = new Polynom(SplineObstacle.Polyfit(x, y, obstacle.points.Count - 1).Reverse().ToArray());
-                RealCoordinate current = new RealCoordinate(obstacle.points[0].x, obstacle.points[0].y - obstaclePassDistance);
-                RealCoordinate end = new RealCoordinate(obstacle.points[obstacle.points.Count - 1].x,
-                    obstacle.points[obstacle.points.Count - 1].y);
-                List<RectangularObstacle> obstacles = new List<RectangularObstacle>();
-                RectangularObstacle firstObstacle = new RectangularObstacle(2 * obstaclePassDistance, obstaclePassDistance,
-                    new RealCoordinate(current.x - obstaclePassDistance, current.y - obstaclePassDistance));
-                obstacles.Add(firstObstacle);
-                do
-                {
-                    RectangularObstacle rect = new RectangularObstacle(2 * obstaclePassDistance, 2,
-                        new RealCoordinate(current.x, current.y));
-                    obstacles.Add(rect);
-                    if (current.x + 2 <= end.x)
-                    {
-                        current.x += 2;
-                        current.y = poly.getPolynomValue(current.x) - obstaclePassDistance;
-                    }
-                    else
-                    {
-                        current.x = end.x;
-                        current.y = end.y;
-                    }
-                } while (RealCoordinate.getDistanceBetweenCoordinates(current, end) != 0);
-                RectangularObstacle lastObstacle = new RectangularObstacle(2 * obstaclePassDistance, obstaclePassDistance,
-                    new RealCoordinate(current.x, current.y));
-                obstacles.Add(lastObstacle);
-
-                List<BoolExpr> avoidingObstacles = new List<BoolExpr>();
-                foreach (RectangularObstacle rect in obstacles)
-                {
-                    avoidingObstacles.Add(handleRealRectangularObstacle(rect, ctx, sourcesX, sourcesY, destinationsX, destinationsY));
-                }
-
-                return ctx.MkAnd(avoidingObstacles.ToArray());
-            }
-        }
-
-        private List<RectangularObstacle> encaseLineSegment(LineSegment segment)
-        {
-            double x = segment.start.x < segment.end.x ? segment.start.x : segment.end.x;
-            double y = segment.start.x < segment.end.x ? segment.start.y : segment.end.y;
-            double otherSideX = x == segment.start.x ? segment.end.x : segment.start.x;
-            double otherSideY = y == segment.start.y ? segment.end.y : segment.start.y;
-            RealCoordinate current = new RealCoordinate(x, y - obstaclePassDistance);
-            RealCoordinate realEnd = new RealCoordinate(otherSideX, otherSideY);
-            List<RectangularObstacle> obstacles = new List<RectangularObstacle>();
-            RectangularObstacle firstObstacle = new RectangularObstacle(2 * obstaclePassDistance, obstaclePassDistance,
-                new RealCoordinate(x - obstaclePassDistance, y - obstaclePassDistance));
-            obstacles.Add(firstObstacle);
-            do
-            {
-                RectangularObstacle obstacle = new RectangularObstacle(2 * obstaclePassDistance, 2, 
-                    new RealCoordinate(current.x, current.y));
-                obstacles.Add(obstacle);
-                if (current.x + 2 <= otherSideX)
-                {
-                    current.x += 2;
-                    current.y = segment.k * current.x + segment.q - obstaclePassDistance;
-                }
-                else
-                {
-                    current.x = otherSideX;
-                    current.y = otherSideY;
-                }
-            } while (RealCoordinate.getDistanceBetweenCoordinates(current, realEnd) != 0);
-            RectangularObstacle lastObstacle = new RectangularObstacle(2 * obstaclePassDistance, obstaclePassDistance,
-                new RealCoordinate(current.x, current.y));
-            obstacles.Add(lastObstacle);
-
-            return obstacles;
         }
     }
 }

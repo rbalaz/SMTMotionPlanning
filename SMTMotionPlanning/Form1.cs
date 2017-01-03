@@ -37,7 +37,6 @@ namespace SMTMotionPlanning
             obstaclePen = new Pen(Color.Red, 5);
             pathPen = new Pen(Color.Black, 2);
             brush = new SolidBrush(Color.Red);
-            // 21.10.2016 fixed graphics being created in form instead of the table layout
             graphicsObj = tableLayoutPanel1.CreateGraphics();
             pathCalculated = false;
             runIssue = false;
@@ -51,9 +50,6 @@ namespace SMTMotionPlanning
 
         private void confirmButton_Click(object sender, EventArgs e)
         {
-            // 21.10.2016 fixed parsing start y into goal y
-            // 22.10.2016 fixed distance not being assigned to class data member
-            // 22.10.2016 added graphics reinitialisation for table layout after being scaled.
             int agentStartX = 0, agentStartY = 0, distance = 0;
             int agentGoalX = 0, agentGoalY = 0;
             int width = 0, length = 0;
@@ -64,25 +60,30 @@ namespace SMTMotionPlanning
                 this.distance = distance;
                 agent = new Agent(new Coordinate(agentStartX, agentStartY), distance, distance);
                 goalLocation = new Coordinate(agentGoalX, agentGoalY);
-                if (world == null)
+                if (world == null && obstacles != null)
                 {
-                    // 24.10.2016 fixed obstacles not being loaded into world, making them invisible for the solver
                     if (int.TryParse(widthEntryBox.Text, out width) && int.TryParse(lengthEntryBox.Text, out length))
                     {
                         world = new Space2D(width, length);
                         foreach (Obstacle o in obstacles)
                             world.obstacles.Add(o);
+                        scaleForm();
+                        graphicsObj = tableLayoutPanel1.CreateGraphics();
+                        Invalidate();
                     }
                     else
                         showParameterError();
                 }
-                else
+                else if (obstacles != null)
                 {
                     foreach (Obstacle o in obstacles)
                         world.obstacles.Add(o);
                     scaleForm();
                     graphicsObj = tableLayoutPanel1.CreateGraphics();
+                    Invalidate();
                 }
+                else
+                    showParameterError();
             }
             else
                 showParameterError();
@@ -97,14 +98,14 @@ namespace SMTMotionPlanning
             world = null;
             pathCalculated = false;
             runIssue = false;
+            Invalidate();
+            Refresh();
         }
 
         private void executeButton_Click(object sender, EventArgs e)
         {
             if (world != null && obstacles != null && agent != null)
             {
-                // 25.10.2016 fixed cycle trying to create path with 0 segments
-                // 25.10.2016 fixed cycle not ending when path was found(added break sentence)
                 FileStream stream = new FileStream("compTime.txt", FileMode.Create, FileAccess.Write);
                 StreamWriter writer = new StreamWriter(stream);
                 Stopwatch watch = new Stopwatch();
@@ -329,7 +330,6 @@ namespace SMTMotionPlanning
 
         private void drawRectangularObstacle(RectangularObstacle o)
         {
-            // 21.10.2016 fixed wrong parameter order for rectangles
             Coordinate relLoc = calculateRelativeCanvasPosition(o.location);
             Rectangle rectangle = new Rectangle(relLoc.x, relLoc.y, o.width, o.length);
             graphicsObj.DrawRectangle(obstaclePen, rectangle);
@@ -369,7 +369,6 @@ namespace SMTMotionPlanning
 
         private void drawPathSegment(Coordinate c)
         {
-            // 21.10.2016 added relative location 
             Coordinate predecessor = path[path.IndexOf(c) - 1];
             Coordinate relativePredecessorLocation = calculateRelativeCanvasPosition(predecessor);
             Coordinate relativeSuccessorLocation = calculateRelativeCanvasPosition(c); 
@@ -421,9 +420,6 @@ namespace SMTMotionPlanning
 
         private void drawStartAndGoalLocation()
         {
-            // 19.10.2016 Fixed wrong referencing for start and goal location.
-            // 21.10.2016 Fixed wrong parameter order in start and finish location
-            // 21.10.2016 Added missing relative canvas position for start and goal location
             Coordinate relativeStartLocation = calculateRelativeCanvasPosition(agent.currentLocation);
             Coordinate relativeGoalLocation = calculateRelativeCanvasPosition(goalLocation);
             Rectangle start = new Rectangle(relativeStartLocation.x - distance/2, relativeStartLocation.y - distance/2, 

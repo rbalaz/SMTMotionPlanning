@@ -38,11 +38,16 @@ namespace SMTMotionPlanning
             {
                 int currentCount = 0;
                 List<SplineObstacle> splitObstacles = new List<SplineObstacle>();
-                while (currentCount + 3 < points.Count)
+                while (currentCount + 2 < points.Count)
                 {
-                    List<Coordinate> points = this.points.Skip(currentCount).Take(3).ToList();
-                    splitObstacles.Add(new SplineObstacle(points));
-                    currentCount += 3;
+                    List<Coordinate> splitPoints = points.Skip(currentCount).Take(3).ToList();
+                    splitObstacles.Add(new SplineObstacle(splitPoints));
+                    currentCount += 2;
+                }
+                List<Coordinate> lastSplitPoints = points.Skip(currentCount).ToList();
+                if (lastSplitPoints.Count > 1)
+                {
+                    splitObstacles.Add(new SplineObstacle(lastSplitPoints));
                 }
                 foreach (SplineObstacle spline in splitObstacles)
                     obstacles = obstacles.Concat(handleSplineObstacle(spline, obstaclePassDistance)).ToList();

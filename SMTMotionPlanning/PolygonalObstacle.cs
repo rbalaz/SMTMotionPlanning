@@ -50,16 +50,17 @@ namespace SMTMotionPlanning
                 {
                     int leftX = (lines[i].start.x < lines[i].end.x ? lines[i].start.x : lines[i].end.x) - obstaclePassDistance;
                     int leftY = lines[i].start.y - obstaclePassDistance;
-                    RectangularObstacle rectangle = new RectangularObstacle(Coordinate.getXDistanceBetweenCoordinates
-                        (lines[i].start, lines[i].end) + 2 * obstaclePassDistance, 2 * obstaclePassDistance, new Coordinate(leftX, leftY));
+                    RectangularObstacle rectangle = new RectangularObstacle(2 * obstaclePassDistance,
+                        Coordinate.getXDistanceBetweenCoordinates(lines[i].start, lines[i].end) + 2 * obstaclePassDistance, 
+                        new Coordinate(leftX, leftY));
                     obstacles.Add(rectangle);
                 }
                 else if (lines[i].isVertical)
                 {
                     int leftY = (lines[i].start.y < lines[i].end.y ? lines[i].start.y : lines[i].end.y) - obstaclePassDistance;
                     int leftX = lines[i].start.x - obstaclePassDistance;
-                    RectangularObstacle rectangle = new RectangularObstacle(2 * obstaclePassDistance,
-                        Coordinate.getYDistanceBetweenCoordinates(lines[i].start, lines[i].end) + 2 * obstaclePassDistance, new Coordinate(leftX, leftY));
+                    RectangularObstacle rectangle = new RectangularObstacle(Coordinate.getYDistanceBetweenCoordinates(lines[i].start, lines[i].end) 
+                        + 2 * obstaclePassDistance, 2 * obstaclePassDistance, new Coordinate(leftX, leftY));
                     obstacles.Add(rectangle);
                 }
                 else
