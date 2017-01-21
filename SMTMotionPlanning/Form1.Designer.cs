@@ -54,13 +54,12 @@
             this.label10 = new System.Windows.Forms.Label();
             this.goalYBox = new System.Windows.Forms.TextBox();
             this.obstacleLoader = new System.Windows.Forms.Button();
-            this.label7 = new System.Windows.Forms.Label();
-            this.pathLengthBox = new System.Windows.Forms.TextBox();
             this.worldLoader = new System.Windows.Forms.Button();
             this.flowLayoutPanel5 = new System.Windows.Forms.FlowLayoutPanel();
             this.label8 = new System.Windows.Forms.Label();
             this.distanceBox = new System.Windows.Forms.TextBox();
             this.openFileDialog1 = new System.Windows.Forms.OpenFileDialog();
+            this.curvedCheckBox = new System.Windows.Forms.CheckBox();
             this.tableLayoutPanel1.SuspendLayout();
             this.flowLayoutPanel1.SuspendLayout();
             this.flowLayoutPanel2.SuspendLayout();
@@ -163,8 +162,7 @@
             this.flowLayoutPanel2.Controls.Add(this.label4);
             this.flowLayoutPanel2.Controls.Add(this.flowLayoutPanel4);
             this.flowLayoutPanel2.Controls.Add(this.obstacleLoader);
-            this.flowLayoutPanel2.Controls.Add(this.label7);
-            this.flowLayoutPanel2.Controls.Add(this.pathLengthBox);
+            this.flowLayoutPanel2.Controls.Add(this.curvedCheckBox);
             this.flowLayoutPanel2.Controls.Add(this.worldLoader);
             this.flowLayoutPanel2.Dock = System.Windows.Forms.DockStyle.Fill;
             this.flowLayoutPanel2.FlowDirection = System.Windows.Forms.FlowDirection.TopDown;
@@ -323,25 +321,9 @@
             this.obstacleLoader.UseVisualStyleBackColor = true;
             this.obstacleLoader.Click += new System.EventHandler(this.obstacleLoader_Click);
             // 
-            // label7
-            // 
-            this.label7.Location = new System.Drawing.Point(3, 268);
-            this.label7.Name = "label7";
-            this.label7.Size = new System.Drawing.Size(118, 37);
-            this.label7.TabIndex = 5;
-            this.label7.Text = "Path lenght:";
-            this.label7.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
-            // 
-            // pathLengthBox
-            // 
-            this.pathLengthBox.Location = new System.Drawing.Point(3, 308);
-            this.pathLengthBox.Name = "pathLengthBox";
-            this.pathLengthBox.Size = new System.Drawing.Size(115, 24);
-            this.pathLengthBox.TabIndex = 7;
-            // 
             // worldLoader
             // 
-            this.worldLoader.Location = new System.Drawing.Point(3, 338);
+            this.worldLoader.Location = new System.Drawing.Point(3, 299);
             this.worldLoader.Name = "worldLoader";
             this.worldLoader.Size = new System.Drawing.Size(115, 44);
             this.worldLoader.TabIndex = 3;
@@ -380,6 +362,18 @@
             // 
             this.openFileDialog1.FileName = "openFileDialog1";
             this.openFileDialog1.Filter = "Text files|*.txt|All files|*.*";
+            // 
+            // curvedCheckBox
+            // 
+            this.curvedCheckBox.AutoSize = true;
+            this.curvedCheckBox.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.curvedCheckBox.Location = new System.Drawing.Point(3, 271);
+            this.curvedCheckBox.Name = "curvedCheckBox";
+            this.curvedCheckBox.Size = new System.Drawing.Size(118, 22);
+            this.curvedCheckBox.TabIndex = 1;
+            this.curvedCheckBox.Text = "Curved path";
+            this.curvedCheckBox.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
+            this.curvedCheckBox.UseVisualStyleBackColor = true;
             // 
             // Form1
             // 
@@ -431,8 +425,6 @@
         private System.Windows.Forms.Label label6;
         private System.Windows.Forms.TextBox startYBox;
         private System.Windows.Forms.Button obstacleLoader;
-        private System.Windows.Forms.Label label7;
-        private System.Windows.Forms.TextBox pathLengthBox;
         private System.Windows.Forms.Button worldLoader;
         private System.Windows.Forms.OpenFileDialog openFileDialog1;
         private System.Windows.Forms.FlowLayoutPanel flowLayoutPanel5;
@@ -442,6 +434,7 @@
         private System.Windows.Forms.TextBox goalXBox;
         private System.Windows.Forms.Label label10;
         private System.Windows.Forms.TextBox goalYBox;
+        private System.Windows.Forms.CheckBox curvedCheckBox;
     }
 }
 

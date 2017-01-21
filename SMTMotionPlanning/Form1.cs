@@ -1,15 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.Data;
 using System.Drawing;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.IO;
 using System.Threading;
-using System.Diagnostics;
 
 namespace SMTMotionPlanning
 {
@@ -30,6 +26,7 @@ namespace SMTMotionPlanning
         private Space world;
         private Agent agent;
         private int distance;
+        private bool curvedPath;
 
         public Form1()
         {
@@ -106,30 +103,23 @@ namespace SMTMotionPlanning
         {
             if (world != null && obstacles != null && agent != null)
             {
-                FileStream stream = new FileStream("compTime.txt", FileMode.Create, FileAccess.Write);
-                StreamWriter writer = new StreamWriter(stream);
-                Stopwatch watch = new Stopwatch();
+                curvedPath = curvedCheckBox.Checked;
                 path = new List<Coordinate>();
                 transformNonRectangularObstacles();
                 for (int i = 1; i <= 100; i++)
                 {
-                    watch.Reset();
-                    watch.Start();
-                    PathFinding finder = new PathFinding(agent.currentLocation, goalLocation, i, distance, world);
+                    PathFinding finder = new PathFinding(agent.currentLocation, goalLocation, i, distance, 50000, world, curvedPath);
                     try
                     {
                         path.AddRange(finder.findPath());
                     }
                     catch (PathFinding.TestFailedException)
                     {
-                        watch.Stop();
-                        writer.WriteLine(watch.ElapsedMilliseconds);
                         continue;
                     }
+                    optimisePath(i);
                     break;
                 }
-                writer.Close();
-                stream.Close();
                 if (path.Count == 0)
                     showPathError("There is no clear available path to goal location.");
                 else
@@ -367,20 +357,20 @@ namespace SMTMotionPlanning
             graphicsObj.DrawCurve(obstaclePen, relLocs.Select(item => new Point(item.x, item.y)).ToArray());
         }
 
-        private void drawPathSegment(Coordinate c)
-        {
-            Coordinate predecessor = path[path.IndexOf(c) - 1];
-            Coordinate relativePredecessorLocation = calculateRelativeCanvasPosition(predecessor);
-            Coordinate relativeSuccessorLocation = calculateRelativeCanvasPosition(c); 
-            graphicsObj.DrawLine(pathPen, relativePredecessorLocation.x, relativePredecessorLocation.y, 
-                relativeSuccessorLocation.x, relativeSuccessorLocation.y);
-        }
         private void drawPathSegment(Coordinate c1, Coordinate c2)
         {
             Coordinate relativePredecessorLocation = calculateRelativeCanvasPosition(c1);
             Coordinate relativeSuccessorLocation = calculateRelativeCanvasPosition(c2);
             graphicsObj.DrawLine(pathPen, relativePredecessorLocation.x, relativePredecessorLocation.y,
                 relativeSuccessorLocation.x, relativeSuccessorLocation.y);
+        }
+
+        private void drawPathSegment(RealCoordinate c1, RealCoordinate c2)
+        {
+            RealCoordinate relativePredecessorLocation = calculateRelativeCanvasPosition(c1);
+            RealCoordinate relativeSuccessorLocation = calculateRelativeCanvasPosition(c2);
+            graphicsObj.DrawLine(pathPen, (float)relativePredecessorLocation.x, (float)relativePredecessorLocation.y,
+                (float)relativeSuccessorLocation.x, (float)relativeSuccessorLocation.y);
         }
 
         private void prettyPathDrawing(Coordinate c)
@@ -390,30 +380,63 @@ namespace SMTMotionPlanning
             Coordinate relativeSuccessorLocation = calculateRelativeCanvasPosition(c);
             int xDistance = Coordinate.getXDistanceBetweenCoordinates(c, predecessor);
             int yDistance = Coordinate.getYDistanceBetweenCoordinates(c, predecessor);
-            if (xDistance != 0)
+            if (xDistance != 0 && yDistance == 0)
             {
                 int xChange = predecessor.x < c.x ? 1 : -1;
-                Coordinate[] segments = new Coordinate[xDistance];
+                Coordinate[] segments = new Coordinate[xDistance + 1];
                 segments[0] = predecessor;
                 segments[xDistance - 1] = c;
-                for (int i = 1; i < xDistance - 1; i++)
+                for (int i = 1; i < xDistance; i++)
                 {
                     segments[i] = new Coordinate(new int[] { segments[i - 1].x + xChange, segments[i - 1].y });
                     drawPathSegment(segments[i - 1], segments[i]);
                     Thread.Sleep((int)Math.Ceiling((double)(1000 / xDistance)));
                 }
             }
-            else
+            if (yDistance != 0 && xDistance == 0)
             {
                 int yChange = predecessor.y < c.y ? 1 : -1;
-                Coordinate[] segments = new Coordinate[yDistance];
+                Coordinate[] segments = new Coordinate[yDistance + 1];
                 segments[0] = predecessor;
                 segments[yDistance - 1] = c;
-                for (int i = 1; i < yDistance - 1; i++)
+                for (int i = 1; i < yDistance; i++)
                 {
                     segments[i] = new Coordinate(new int[] { segments[i - 1].x, segments[i - 1].y + yChange});
                     drawPathSegment(segments[i - 1], segments[i]);
                     Thread.Sleep((int)Math.Ceiling((double)(1000 / yDistance)));
+                }
+            }
+            if (yDistance != 0 && xDistance != 0)
+            {
+                double k = (double)(c.y - predecessor.y) / (double)(c.x - predecessor.x);
+                double q = predecessor.y - k * predecessor.x;
+                if (yDistance > xDistance)
+                {
+                    int yChange = predecessor.y < c.y ? 1 : -1;
+                    RealCoordinate[] segments = new RealCoordinate[yDistance + 1];
+                    segments[0] = new RealCoordinate(predecessor.x, predecessor.y);
+                    for (int i = 1; i < yDistance; i++)
+                    {
+                        float currentY = (float)segments[i - 1].y + yChange;
+                        float currentX = (float)((currentY - q) / k);
+                        segments[i] = new RealCoordinate(currentX, currentY);
+                        drawPathSegment(segments[i - 1], segments[i]);
+                        Thread.Sleep((int)Math.Ceiling((double)(1000 / yDistance)));
+                    }
+                }
+                if (xDistance > yDistance)
+                {
+                    int xChange = predecessor.x < c.x ? 1 : -1;
+                    RealCoordinate[] segments = new RealCoordinate[xDistance + 1];
+                    segments[0] = new RealCoordinate(predecessor.x, predecessor.y);
+                    for (int i = 1; i < xDistance; i++)
+                    {
+                        float currentX = (float)segments[i - 1].x + xChange;
+                        float currentY = (float)(k * currentX + q);
+                        segments[i] = new RealCoordinate(currentX, currentY);
+                        drawPathSegment(segments[i - 1], segments[i]);
+                        Thread.Sleep((int)Math.Ceiling((double)(1000 / xDistance)));
+                    }
                 }
             }  
         }
@@ -449,6 +472,14 @@ namespace SMTMotionPlanning
             return new Coordinate((int)relativeX, relativeY);
         }
 
+        private RealCoordinate calculateRelativeCanvasPosition(RealCoordinate location)
+        {
+            double relativeX = location.x + Math.Ceiling((double)(Width / 5));
+            double relativeY = location.y;
+
+            return new RealCoordinate(relativeX, relativeY);
+        }
+
         private void scaleForm()
         {
             // Minimum Form size: 640 * 480
@@ -473,6 +504,35 @@ namespace SMTMotionPlanning
         {
             string caption = "Error calculating path";
             MessageBox.Show(message, caption, MessageBoxButtons.OK, MessageBoxIcon.Error);
+        }
+
+        private void optimisePath(int pathSegments)
+        {
+            int pathLength = 0;
+            for (int i = 0; i < path.Count - 1; i++)
+            {
+                pathLength += Coordinate.getXDistanceBetweenCoordinates(path[i], path[i + 1]) +
+                    Coordinate.getYDistanceBetweenCoordinates(path[i], path[i + 1]);
+            }
+
+            int decrementor = pathLength / 10;
+            while (decrementor > 0)
+            {
+                pathLength -= decrementor;
+                PathFinding finder = new PathFinding(agent.currentLocation, goalLocation, pathSegments,
+                    distance, pathLength, world, curvedPath);
+                try
+                {
+                    Coordinate[] newPath = finder.findPath();
+                    path = new List<Coordinate>();
+                    path.AddRange(newPath);
+                }
+                catch (PathFinding.TestFailedException)
+                {
+                    pathLength += decrementor;
+                    decrementor = (int)(decrementor * 0.9);
+                }
+            }
         }
     }
 }

@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Microsoft.Z3;
 using System.Globalization;
+using System.IO;
 
 namespace SMTMotionPlanning
 {
@@ -18,14 +19,19 @@ namespace SMTMotionPlanning
         private int pathSegments;
         private Space world;
         private int obstaclePassDistance;
+        private int maximumPathLength;
+        private bool curvedPath;
 
-        public PathFinding(Coordinate startLocation, Coordinate goalLocation, int pathSegments, int obstaclePassDistance, Space world)
+        public PathFinding(Coordinate startLocation, Coordinate goalLocation, int pathSegments, 
+            int obstaclePassDistance, int maximumPathLength, Space world, bool curvedPath)
         {
             this.startLocation = startLocation;
             this.goalLocation = goalLocation;
             this.pathSegments = pathSegments;
             this.obstaclePassDistance = obstaclePassDistance;
             this.world = world;
+            this.maximumPathLength = maximumPathLength;
+            this.curvedPath = curvedPath;
         }
 
         public Coordinate[] findPath()
@@ -63,13 +69,17 @@ namespace SMTMotionPlanning
             BoolExpr prerequisitesConstraints = generateStartAndGoal(ctx, sourcesX, sourcesY, destinationsX, destinationsY);
             BoolExpr joiningPathSegments = joinPathSegments(ctx, sourcesX, sourcesY, destinationsX, destinationsY);
             BoolExpr avoidingObstacles = avoidObstacles(world, ctx, sourcesX, sourcesY, destinationsX, destinationsY);
+            BoolExpr pathLengthConstraint = generatePathLengthConstraint(ctx, sourcesX, sourcesY, destinationsX, destinationsY);
 
             Solver s = ctx.MkSolver();
             s.Assert(worldSizeConstraints);
-            s.Assert(movementConstraints);
+            if(!(curvedPath))
+                s.Assert(movementConstraints);
             s.Assert(prerequisitesConstraints);
             s.Assert(joiningPathSegments);
             s.Assert(avoidingObstacles);
+            s.Assert(pathLengthConstraint);
+
             Status status = s.Check();
             if (status != Status.SATISFIABLE)
                 throw new TestFailedException();
@@ -181,10 +191,25 @@ namespace SMTMotionPlanning
             return ctx.MkAnd(pathSegmentsXConj, pathSegmentsYConj);
         }
 
-        private BoolExpr pathLength()
+        private BoolExpr generatePathLengthConstraint(Context ctx, IntExpr[] sourcesX, IntExpr[] sourcesY, IntExpr[] destinationsX, IntExpr[] destinationsY)
         {
             // Potentially sixth input into SMT solver is the path length constraint
-            throw new NotImplementedException();
+            ArithExpr[] lengthParts = new ArithExpr[pathSegments];
+            for (int i = 0; i < pathSegments; i++)
+            {
+                ArithExpr xs_minus_xd = ctx.MkSub(sourcesX[i], destinationsX[i]);
+                ArithExpr xd_minus_xs = ctx.MkSub(destinationsX[i], sourcesX[i]);
+                ArithExpr ys_minus_yd = ctx.MkSub(sourcesY[i], destinationsY[i]);
+                ArithExpr yd_minus_ys = ctx.MkSub(destinationsY[i], sourcesY[i]);
+                BoolExpr xs_ge_xd = ctx.MkGe(sourcesX[i], destinationsX[i]);
+                BoolExpr ys_ge_yd = ctx.MkGe(sourcesY[i], destinationsY[i]);
+                ArithExpr first = (ArithExpr)ctx.MkITE(xs_ge_xd, xs_minus_xd, xd_minus_xs);
+                ArithExpr second = (ArithExpr)ctx.MkITE(ys_ge_yd, ys_minus_yd, yd_minus_ys);
+                lengthParts[i] = ctx.MkAdd(first, second);
+            }
+            BoolExpr finalExpression = ctx.MkLe(ctx.MkAdd(lengthParts), ctx.MkInt(maximumPathLength));
+
+            return finalExpression;
         }
 
         private BoolExpr avoidObstacles(Space world, Context ctx, IntExpr[] sourcesX, IntExpr[] sourcesY, IntExpr[] destinationsX, IntExpr[] destinationsY)
