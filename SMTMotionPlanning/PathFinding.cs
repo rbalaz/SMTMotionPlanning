@@ -22,7 +22,7 @@ namespace SMTMotionPlanning
         private int maximumPathLength;
         private bool curvedPath;
 
-        public PathFinding(Coordinate startLocation, Coordinate goalLocation, int pathSegments, 
+        public PathFinding(Coordinate startLocation, Coordinate goalLocation, int pathSegments,
             int obstaclePassDistance, int maximumPathLength, Space world, bool curvedPath)
         {
             this.startLocation = startLocation;
@@ -73,7 +73,7 @@ namespace SMTMotionPlanning
 
             Solver s = ctx.MkSolver();
             s.Assert(worldSizeConstraints);
-            if(!(curvedPath))
+            if (!(curvedPath))
                 s.Assert(movementConstraints);
             s.Assert(prerequisitesConstraints);
             s.Assert(joiningPathSegments);
@@ -111,7 +111,6 @@ namespace SMTMotionPlanning
         private Coordinate[] find3DPath()
         {
             /* Coordinate[] path;
-
             return path;*/
             throw new NotImplementedException();
         }
@@ -226,7 +225,7 @@ namespace SMTMotionPlanning
                         obstacles.Add(handleEllipticalObstacle((EllipticalObstacle)world.obstacles[i], ctx, destinationsX, destinationsY, sourcesX, sourcesY));
                         break;
                     case Obstacle.ObstacleType.Rectangle:
-                        if(((RectangularObstacle)(world.obstacles[i])).realLocation != null)
+                        if (((RectangularObstacle)(world.obstacles[i])).realLocation != null)
                             obstacles.Add(handleRealRectangularObstacle((RectangularObstacle)world.obstacles[i], ctx, sourcesX, sourcesY, destinationsX, destinationsY));
                         else
                             obstacles.Add(handleRectangularObstacle((RectangularObstacle)world.obstacles[i], ctx, sourcesX, sourcesY, destinationsX, destinationsY));
@@ -239,8 +238,8 @@ namespace SMTMotionPlanning
 
         private BoolExpr handleEllipticalObstacle(EllipticalObstacle obstacle, Context ctx, IntExpr[] destinationsX, IntExpr[] destinationsY, IntExpr[] sourcesX, IntExpr[] sourcesY)
         {
-            RectangularObstacle rectangle = new RectangularObstacle(obstacle.length, obstacle.width, 
-                new Coordinate(obstacle.location.x - obstacle.width/2, obstacle.location.y - obstacle.length/2));
+            RectangularObstacle rectangle = new RectangularObstacle(obstacle.length, obstacle.width,
+                new Coordinate(obstacle.location.x - obstacle.width / 2, obstacle.location.y - obstacle.length / 2));
             return handleRectangularObstacle(rectangle, ctx, sourcesX, sourcesY, destinationsX, destinationsY);
         }
 

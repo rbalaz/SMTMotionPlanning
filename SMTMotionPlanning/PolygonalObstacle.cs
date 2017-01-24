@@ -119,8 +119,8 @@ namespace SMTMotionPlanning
 
         private List<RectangularObstacle> encaseLineSegmentByY(LineSegment segment, int obstaclePassDistance)
         {
-            double x = segment.start.x < segment.end.x ? segment.start.x : segment.end.x;
-            double y = segment.start.x < segment.end.x ? segment.start.y : segment.end.y;
+            double y = segment.start.y < segment.end.y ? segment.start.y : segment.end.y;
+            double x = segment.start.y < segment.end.y ? segment.start.x : segment.end.x;           
             double otherSideX = x == segment.start.x ? segment.end.x : segment.start.x;
             double otherSideY = y == segment.start.y ? segment.end.y : segment.start.y;
             RealCoordinate current = new RealCoordinate(x - obstaclePassDistance, y);

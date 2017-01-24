@@ -201,7 +201,7 @@ namespace SMTMotionPlanning
                 while ((line = sr.ReadLine()) != null)
                 {
                     string[] obstacleParts = line.Split(' ');
-                    if(obstacleParts[0].Equals("r"))
+                    if (obstacleParts[0].Equals("r"))
                         obstacles.Add(new RectangularObstacle(int.Parse(obstacleParts[4]), int.Parse(obstacleParts[3]),
                             new Coordinate(int.Parse(obstacleParts[1]), int.Parse(obstacleParts[2]))));
                     if (obstacleParts[0].Equals("p"))
@@ -220,7 +220,7 @@ namespace SMTMotionPlanning
                     }
                     if (obstacleParts[0].Equals("e"))
                     {
-                        obstacles.Add(new EllipticalObstacle(new Coordinate(int.Parse(obstacleParts[1]), 
+                        obstacles.Add(new EllipticalObstacle(new Coordinate(int.Parse(obstacleParts[1]),
                             int.Parse(obstacleParts[2])), int.Parse(obstacleParts[3]), int.Parse(obstacleParts[4])));
                     }
                 }
@@ -282,16 +282,16 @@ namespace SMTMotionPlanning
             switch (o.type)
             {
                 case Obstacle.ObstacleType.Rectangle:
-                    drawRectangularObstacle((RectangularObstacle) o);
+                    drawRectangularObstacle((RectangularObstacle)o);
                     break;
                 case Obstacle.ObstacleType.Polygon:
-                    drawPolygonalObstacle((PolygonalObstacle) o);
+                    drawPolygonalObstacle((PolygonalObstacle)o);
                     break;
                 case Obstacle.ObstacleType.Ellipse:
-                    drawEllipticalObstacle((EllipticalObstacle) o);
+                    drawEllipticalObstacle((EllipticalObstacle)o);
                     break;
                 case Obstacle.ObstacleType.Spline:
-                    drawSplineObstacle((SplineObstacle) o);
+                    drawSplineObstacle((SplineObstacle)o);
                     break;
             }
         }
@@ -339,8 +339,8 @@ namespace SMTMotionPlanning
 
         private void drawEllipticalObstacle(EllipticalObstacle o)
         {
-            Coordinate relLoc = calculateRelativeCanvasPosition(new Coordinate(o.location.x - o.width/2,
-                o.location.y - o.length/2));
+            Coordinate relLoc = calculateRelativeCanvasPosition(new Coordinate(o.location.x - o.width / 2,
+                o.location.y - o.length / 2));
             Rectangle rectangle = new Rectangle(relLoc.x, relLoc.y, o.width, o.length);
             graphicsObj.DrawEllipse(obstaclePen, rectangle);
             graphicsObj.FillEllipse(brush, rectangle);
@@ -401,7 +401,7 @@ namespace SMTMotionPlanning
                 segments[yDistance - 1] = c;
                 for (int i = 1; i < yDistance; i++)
                 {
-                    segments[i] = new Coordinate(new int[] { segments[i - 1].x, segments[i - 1].y + yChange});
+                    segments[i] = new Coordinate(new int[] { segments[i - 1].x, segments[i - 1].y + yChange });
                     drawPathSegment(segments[i - 1], segments[i]);
                     Thread.Sleep((int)Math.Ceiling((double)(1000 / yDistance)));
                 }
@@ -438,16 +438,16 @@ namespace SMTMotionPlanning
                         Thread.Sleep((int)Math.Ceiling((double)(1000 / xDistance)));
                     }
                 }
-            }  
+            }
         }
 
         private void drawStartAndGoalLocation()
         {
             Coordinate relativeStartLocation = calculateRelativeCanvasPosition(agent.currentLocation);
             Coordinate relativeGoalLocation = calculateRelativeCanvasPosition(goalLocation);
-            Rectangle start = new Rectangle(relativeStartLocation.x - distance/2, relativeStartLocation.y - distance/2, 
+            Rectangle start = new Rectangle(relativeStartLocation.x - distance / 2, relativeStartLocation.y - distance / 2,
                 distance, distance);
-            Rectangle finish = new Rectangle(relativeGoalLocation.x - distance/2, relativeGoalLocation.y - distance/2,
+            Rectangle finish = new Rectangle(relativeGoalLocation.x - distance / 2, relativeGoalLocation.y - distance / 2,
                 distance, distance);
             Brush finishBrush = new SolidBrush(Color.Blue);
             Pen finishPen = new Pen(Color.Green, 5);
