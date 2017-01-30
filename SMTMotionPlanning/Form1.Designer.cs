@@ -56,11 +56,11 @@
             this.obstacleLoader = new System.Windows.Forms.Button();
             this.curvedCheckBox = new System.Windows.Forms.CheckBox();
             this.worldLoader = new System.Windows.Forms.Button();
+            this.progressLabel = new System.Windows.Forms.Label();
             this.flowLayoutPanel5 = new System.Windows.Forms.FlowLayoutPanel();
             this.label8 = new System.Windows.Forms.Label();
             this.distanceBox = new System.Windows.Forms.TextBox();
             this.openFileDialog1 = new System.Windows.Forms.OpenFileDialog();
-            this.progressLabel = new System.Windows.Forms.Label();
             this.tableLayoutPanel1.SuspendLayout();
             this.flowLayoutPanel1.SuspendLayout();
             this.flowLayoutPanel2.SuspendLayout();
@@ -73,8 +73,8 @@
             // 
             this.tableLayoutPanel1.AutoSize = true;
             this.tableLayoutPanel1.ColumnCount = 2;
-            this.tableLayoutPanel1.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 20F));
-            this.tableLayoutPanel1.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 80F));
+            this.tableLayoutPanel1.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 25.5814F));
+            this.tableLayoutPanel1.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 74.4186F));
             this.tableLayoutPanel1.Controls.Add(this.flowLayoutPanel1, 1, 1);
             this.tableLayoutPanel1.Controls.Add(this.flowLayoutPanel2, 0, 0);
             this.tableLayoutPanel1.Controls.Add(this.flowLayoutPanel5, 0, 1);
@@ -96,9 +96,9 @@
             this.flowLayoutPanel1.Controls.Add(this.runButton);
             this.flowLayoutPanel1.Controls.Add(this.closeButton);
             this.flowLayoutPanel1.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.flowLayoutPanel1.Location = new System.Drawing.Point(127, 400);
+            this.flowLayoutPanel1.Location = new System.Drawing.Point(162, 400);
             this.flowLayoutPanel1.Name = "flowLayoutPanel1";
-            this.flowLayoutPanel1.Size = new System.Drawing.Size(494, 39);
+            this.flowLayoutPanel1.Size = new System.Drawing.Size(459, 39);
             this.flowLayoutPanel1.TabIndex = 0;
             // 
             // confirmButton
@@ -128,7 +128,7 @@
             this.executeButton.AutoSize = true;
             this.executeButton.Location = new System.Drawing.Point(165, 3);
             this.executeButton.Name = "executeButton";
-            this.executeButton.Size = new System.Drawing.Size(144, 36);
+            this.executeButton.Size = new System.Drawing.Size(112, 36);
             this.executeButton.TabIndex = 2;
             this.executeButton.Text = "Find path";
             this.executeButton.UseVisualStyleBackColor = true;
@@ -137,7 +137,7 @@
             // runButton
             // 
             this.runButton.AutoSize = true;
-            this.runButton.Location = new System.Drawing.Point(315, 3);
+            this.runButton.Location = new System.Drawing.Point(283, 3);
             this.runButton.Name = "runButton";
             this.runButton.Size = new System.Drawing.Size(76, 36);
             this.runButton.TabIndex = 8;
@@ -148,7 +148,7 @@
             // closeButton
             // 
             this.closeButton.AutoSize = true;
-            this.closeButton.Location = new System.Drawing.Point(397, 3);
+            this.closeButton.Location = new System.Drawing.Point(365, 3);
             this.closeButton.Name = "closeButton";
             this.closeButton.Size = new System.Drawing.Size(88, 36);
             this.closeButton.TabIndex = 7;
@@ -170,14 +170,15 @@
             this.flowLayoutPanel2.FlowDirection = System.Windows.Forms.FlowDirection.TopDown;
             this.flowLayoutPanel2.Location = new System.Drawing.Point(3, 3);
             this.flowLayoutPanel2.Name = "flowLayoutPanel2";
-            this.flowLayoutPanel2.Size = new System.Drawing.Size(118, 391);
+            this.flowLayoutPanel2.Size = new System.Drawing.Size(153, 391);
             this.flowLayoutPanel2.TabIndex = 2;
             // 
             // label1
             // 
+            this.label1.Dock = System.Windows.Forms.DockStyle.Fill;
             this.label1.Location = new System.Drawing.Point(3, 0);
             this.label1.Name = "label1";
-            this.label1.Size = new System.Drawing.Size(118, 36);
+            this.label1.Size = new System.Drawing.Size(150, 36);
             this.label1.TabIndex = 1;
             this.label1.Text = "World parameters:";
             this.label1.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
@@ -190,7 +191,7 @@
             this.flowLayoutPanel3.Controls.Add(this.lengthEntryBox);
             this.flowLayoutPanel3.Location = new System.Drawing.Point(3, 39);
             this.flowLayoutPanel3.Name = "flowLayoutPanel3";
-            this.flowLayoutPanel3.Size = new System.Drawing.Size(115, 69);
+            this.flowLayoutPanel3.Size = new System.Drawing.Size(150, 69);
             this.flowLayoutPanel3.TabIndex = 3;
             // 
             // label2
@@ -206,7 +207,7 @@
             // 
             this.widthEntryBox.Location = new System.Drawing.Point(59, 3);
             this.widthEntryBox.Name = "widthEntryBox";
-            this.widthEntryBox.Size = new System.Drawing.Size(50, 24);
+            this.widthEntryBox.Size = new System.Drawing.Size(83, 24);
             this.widthEntryBox.TabIndex = 3;
             // 
             // label3
@@ -222,14 +223,14 @@
             // 
             this.lengthEntryBox.Location = new System.Drawing.Point(74, 33);
             this.lengthEntryBox.Name = "lengthEntryBox";
-            this.lengthEntryBox.Size = new System.Drawing.Size(37, 24);
+            this.lengthEntryBox.Size = new System.Drawing.Size(68, 24);
             this.lengthEntryBox.TabIndex = 5;
             // 
             // label4
             // 
             this.label4.Location = new System.Drawing.Point(3, 111);
             this.label4.Name = "label4";
-            this.label4.Size = new System.Drawing.Size(118, 37);
+            this.label4.Size = new System.Drawing.Size(150, 37);
             this.label4.TabIndex = 4;
             this.label4.Text = "Agent start and goal location:";
             this.label4.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
@@ -246,7 +247,7 @@
             this.flowLayoutPanel4.Controls.Add(this.goalYBox);
             this.flowLayoutPanel4.Location = new System.Drawing.Point(3, 151);
             this.flowLayoutPanel4.Name = "flowLayoutPanel4";
-            this.flowLayoutPanel4.Size = new System.Drawing.Size(118, 64);
+            this.flowLayoutPanel4.Size = new System.Drawing.Size(150, 64);
             this.flowLayoutPanel4.TabIndex = 3;
             // 
             // label5
@@ -262,12 +263,12 @@
             // 
             this.startXBox.Location = new System.Drawing.Point(31, 3);
             this.startXBox.Name = "startXBox";
-            this.startXBox.Size = new System.Drawing.Size(24, 24);
+            this.startXBox.Size = new System.Drawing.Size(37, 24);
             this.startXBox.TabIndex = 4;
             // 
             // label6
             // 
-            this.label6.Location = new System.Drawing.Point(61, 0);
+            this.label6.Location = new System.Drawing.Point(74, 0);
             this.label6.Name = "label6";
             this.label6.Size = new System.Drawing.Size(22, 29);
             this.label6.TabIndex = 5;
@@ -276,9 +277,9 @@
             // 
             // startYBox
             // 
-            this.startYBox.Location = new System.Drawing.Point(89, 3);
+            this.startYBox.Location = new System.Drawing.Point(102, 3);
             this.startYBox.Name = "startYBox";
-            this.startYBox.Size = new System.Drawing.Size(24, 24);
+            this.startYBox.Size = new System.Drawing.Size(40, 24);
             this.startYBox.TabIndex = 6;
             // 
             // label9
@@ -294,12 +295,12 @@
             // 
             this.goalXBox.Location = new System.Drawing.Point(31, 33);
             this.goalXBox.Name = "goalXBox";
-            this.goalXBox.Size = new System.Drawing.Size(24, 24);
+            this.goalXBox.Size = new System.Drawing.Size(37, 24);
             this.goalXBox.TabIndex = 8;
             // 
             // label10
             // 
-            this.label10.Location = new System.Drawing.Point(61, 30);
+            this.label10.Location = new System.Drawing.Point(74, 30);
             this.label10.Name = "label10";
             this.label10.Size = new System.Drawing.Size(22, 29);
             this.label10.TabIndex = 9;
@@ -308,16 +309,16 @@
             // 
             // goalYBox
             // 
-            this.goalYBox.Location = new System.Drawing.Point(89, 33);
+            this.goalYBox.Location = new System.Drawing.Point(102, 33);
             this.goalYBox.Name = "goalYBox";
-            this.goalYBox.Size = new System.Drawing.Size(24, 24);
+            this.goalYBox.Size = new System.Drawing.Size(40, 24);
             this.goalYBox.TabIndex = 10;
             // 
             // obstacleLoader
             // 
             this.obstacleLoader.Location = new System.Drawing.Point(3, 221);
             this.obstacleLoader.Name = "obstacleLoader";
-            this.obstacleLoader.Size = new System.Drawing.Size(115, 44);
+            this.obstacleLoader.Size = new System.Drawing.Size(150, 44);
             this.obstacleLoader.TabIndex = 3;
             this.obstacleLoader.Text = "Load obstacles";
             this.obstacleLoader.UseVisualStyleBackColor = true;
@@ -329,7 +330,7 @@
             this.curvedCheckBox.Dock = System.Windows.Forms.DockStyle.Fill;
             this.curvedCheckBox.Location = new System.Drawing.Point(3, 271);
             this.curvedCheckBox.Name = "curvedCheckBox";
-            this.curvedCheckBox.Size = new System.Drawing.Size(118, 22);
+            this.curvedCheckBox.Size = new System.Drawing.Size(150, 22);
             this.curvedCheckBox.TabIndex = 1;
             this.curvedCheckBox.Text = "Curved path";
             this.curvedCheckBox.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
@@ -339,11 +340,21 @@
             // 
             this.worldLoader.Location = new System.Drawing.Point(3, 299);
             this.worldLoader.Name = "worldLoader";
-            this.worldLoader.Size = new System.Drawing.Size(115, 44);
+            this.worldLoader.Size = new System.Drawing.Size(150, 44);
             this.worldLoader.TabIndex = 3;
             this.worldLoader.Text = "Load world from file";
             this.worldLoader.UseVisualStyleBackColor = true;
             this.worldLoader.Click += new System.EventHandler(this.worldLoader_Click);
+            // 
+            // progressLabel
+            // 
+            this.progressLabel.AutoSize = true;
+            this.progressLabel.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.progressLabel.Location = new System.Drawing.Point(3, 346);
+            this.progressLabel.Name = "progressLabel";
+            this.progressLabel.Size = new System.Drawing.Size(150, 18);
+            this.progressLabel.TabIndex = 4;
+            this.progressLabel.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
             // 
             // flowLayoutPanel5
             // 
@@ -353,7 +364,7 @@
             this.flowLayoutPanel5.Dock = System.Windows.Forms.DockStyle.Fill;
             this.flowLayoutPanel5.Location = new System.Drawing.Point(3, 400);
             this.flowLayoutPanel5.Name = "flowLayoutPanel5";
-            this.flowLayoutPanel5.Size = new System.Drawing.Size(118, 39);
+            this.flowLayoutPanel5.Size = new System.Drawing.Size(153, 39);
             this.flowLayoutPanel5.TabIndex = 3;
             // 
             // label8
@@ -369,23 +380,13 @@
             // 
             this.distanceBox.Location = new System.Drawing.Point(85, 3);
             this.distanceBox.Name = "distanceBox";
-            this.distanceBox.Size = new System.Drawing.Size(26, 24);
+            this.distanceBox.Size = new System.Drawing.Size(60, 24);
             this.distanceBox.TabIndex = 1;
             // 
             // openFileDialog1
             // 
             this.openFileDialog1.FileName = "openFileDialog1";
             this.openFileDialog1.Filter = "Text files|*.txt|All files|*.*";
-            // 
-            // progressLabel
-            // 
-            this.progressLabel.AutoSize = true;
-            this.progressLabel.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.progressLabel.Location = new System.Drawing.Point(3, 346);
-            this.progressLabel.Name = "progressLabel";
-            this.progressLabel.Size = new System.Drawing.Size(118, 18);
-            this.progressLabel.TabIndex = 4;
-            this.progressLabel.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
             // 
             // Form1
             // 

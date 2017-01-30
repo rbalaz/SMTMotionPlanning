@@ -466,12 +466,12 @@ namespace SMTMotionPlanning
         private Coordinate calculateRelativeCanvasPosition(Coordinate location)
         {
             // 0 - 90% of the actual length of form is the canvas for drawing
-            // 20 - 100% of the actual width of form is the canvas for drawing
+            // 25 - 100% of the actual width of form is the canvas for drawing
             // Purpose of this method is to calculate the position of the object in relation to these proportions
             // The actual [0,0] point is not going to be left-top corner of the form, but the left-top corner
             // of the canvas itself, leaving out parts of the form where the controls are
 
-            double relativeX = location.x + Math.Ceiling((double)(Width / 5));
+            double relativeX = location.x + Math.Ceiling((double)(Width * 0.2558));
             int relativeY = location.y;
 
             return new Coordinate((int)relativeX, relativeY);
@@ -479,7 +479,7 @@ namespace SMTMotionPlanning
 
         private RealCoordinate calculateRelativeCanvasPosition(RealCoordinate location)
         {
-            double relativeX = location.x + Math.Ceiling((double)(Width / 5));
+            double relativeX = location.x + Math.Ceiling((double)(Width * 0.2558));
             double relativeY = location.y;
 
             return new RealCoordinate(relativeX, relativeY);
@@ -488,8 +488,9 @@ namespace SMTMotionPlanning
         private void scaleForm()
         {
             // Minimum Form size: 640 * 480
-            double newWidth = world.width / 0.8 + 16;
-            double newLength = world.length / 0.8 + 18;
+            // Form designed rescaled, first column now has 25.58%
+            double newWidth = world.width * 1.35;
+            double newLength = world.length * 1.2;
 
             if (newWidth != Width || newWidth != Height)
             {

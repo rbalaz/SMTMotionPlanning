@@ -71,7 +71,8 @@ namespace SMTMotionPlanning
             BoolExpr avoidingObstacles = avoidObstacles(world, ctx, sourcesX, sourcesY, destinationsX, destinationsY);
             BoolExpr pathLengthConstraint = generatePathLengthConstraint(ctx, sourcesX, sourcesY, destinationsX, destinationsY);
 
-            Solver s = ctx.MkSolver(ctx.MkTactic("qfnra-nlsat"));
+            //Solver s = ctx.MkSolver(ctx.MkTactic("qfnra-nlsat"));
+            Solver s = ctx.MkSolver();
             s.Assert(worldSizeConstraints);
             if (!(curvedPath))
                 s.Assert(movementConstraints);
@@ -262,7 +263,8 @@ namespace SMTMotionPlanning
                 dot.NumberDecimalSeparator = ".";
                 for (int i = 0; i < pathSegments; i++)
                 {
-                    double radius = obstacle.length / 2.0 + obstaclePassDistance;
+                    // fine-tuned formula with 0.73 coeficient
+                    double radius = (obstacle.length / 2.0 + obstaclePassDistance) * 0.73;
                     IntExpr x0 = ctx.MkInt(obstacle.location.x);
                     IntExpr y0 = ctx.MkInt(obstacle.location.y);
                     RealExpr r = ctx.MkReal(radius.ToString(dot));
@@ -274,7 +276,7 @@ namespace SMTMotionPlanning
                     ArithExpr b = ctx.MkMul(ctx.MkAdd(ctx.MkMul(dx, fx), ctx.MkMul(dy, fy)),ctx.MkInt(2));
                     ArithExpr c = ctx.MkSub(ctx.MkAdd(ctx.MkMul(fx, fx), ctx.MkMul(fy, fy)), ctx.MkMul(r, r));
                     ArithExpr discriminant = ctx.MkSub(ctx.MkMul(b, b), ctx.MkMul(ctx.MkInt(4), a, c));
-                    BoolExpr final = ctx.MkLt(discriminant, ctx.MkInt(0));
+                    BoolExpr final = ctx.MkLe(discriminant, ctx.MkInt(0));
 
                     avoidingCircle[i] = final;
                 }
@@ -377,12 +379,12 @@ namespace SMTMotionPlanning
                     avoidingLines.Add(handleCurvedLine(segment, ctx, sourcesX, sourcesY, destinationsX, destinationsY));
                     // Circle obstacles are added with start and end segments as their centers and obstacle pass distance
                     // as their radius
-                    EllipticalObstacle first = new EllipticalObstacle(segment.start, obstaclePassDistance, obstaclePassDistance);
-                    EllipticalObstacle second = new EllipticalObstacle(segment.end, obstaclePassDistance, obstaclePassDistance);
-                    BoolExpr avoidingFirst = handleEllipticalObstacle(first, ctx, sourcesX, sourcesY, destinationsX, destinationsY);
-                    BoolExpr avoidingSecond = handleEllipticalObstacle(second, ctx, sourcesX, sourcesY, destinationsX, destinationsY);
-                    avoidingLines.Add(avoidingFirst);
-                    avoidingLines.Add(avoidingSecond);
+                    //EllipticalObstacle first = new EllipticalObstacle(segment.start, 0, 0);
+                    //EllipticalObstacle second = new EllipticalObstacle(segment.end, 0, 0);
+                    //BoolExpr avoidingFirst = handleEllipticalObstacle(first, ctx, sourcesX, sourcesY, destinationsX, destinationsY);
+                    //BoolExpr avoidingSecond = handleEllipticalObstacle(second, ctx, sourcesX, sourcesY, destinationsX, destinationsY);
+                    //avoidingLines.Add(avoidingFirst);
+                    //avoidingLines.Add(avoidingSecond);
                 }
             }
 
