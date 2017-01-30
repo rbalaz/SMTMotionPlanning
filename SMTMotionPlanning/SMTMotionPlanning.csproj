@@ -68,6 +68,7 @@
     <Compile Include="PolygonalObstacle.cs" />
     <Compile Include="Polynom.cs" />
     <Compile Include="RealCoordinate.cs" />
+    <Compile Include="RealLineSegment.cs" />
     <Compile Include="RectangularObstacle.cs" />
     <Compile Include="Obstacle3D.cs" />
     <Compile Include="PathFinding.cs" />

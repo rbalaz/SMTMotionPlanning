@@ -54,12 +54,13 @@
             this.label10 = new System.Windows.Forms.Label();
             this.goalYBox = new System.Windows.Forms.TextBox();
             this.obstacleLoader = new System.Windows.Forms.Button();
+            this.curvedCheckBox = new System.Windows.Forms.CheckBox();
             this.worldLoader = new System.Windows.Forms.Button();
             this.flowLayoutPanel5 = new System.Windows.Forms.FlowLayoutPanel();
             this.label8 = new System.Windows.Forms.Label();
             this.distanceBox = new System.Windows.Forms.TextBox();
             this.openFileDialog1 = new System.Windows.Forms.OpenFileDialog();
-            this.curvedCheckBox = new System.Windows.Forms.CheckBox();
+            this.progressLabel = new System.Windows.Forms.Label();
             this.tableLayoutPanel1.SuspendLayout();
             this.flowLayoutPanel1.SuspendLayout();
             this.flowLayoutPanel2.SuspendLayout();
@@ -164,6 +165,7 @@
             this.flowLayoutPanel2.Controls.Add(this.obstacleLoader);
             this.flowLayoutPanel2.Controls.Add(this.curvedCheckBox);
             this.flowLayoutPanel2.Controls.Add(this.worldLoader);
+            this.flowLayoutPanel2.Controls.Add(this.progressLabel);
             this.flowLayoutPanel2.Dock = System.Windows.Forms.DockStyle.Fill;
             this.flowLayoutPanel2.FlowDirection = System.Windows.Forms.FlowDirection.TopDown;
             this.flowLayoutPanel2.Location = new System.Drawing.Point(3, 3);
@@ -321,6 +323,18 @@
             this.obstacleLoader.UseVisualStyleBackColor = true;
             this.obstacleLoader.Click += new System.EventHandler(this.obstacleLoader_Click);
             // 
+            // curvedCheckBox
+            // 
+            this.curvedCheckBox.AutoSize = true;
+            this.curvedCheckBox.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.curvedCheckBox.Location = new System.Drawing.Point(3, 271);
+            this.curvedCheckBox.Name = "curvedCheckBox";
+            this.curvedCheckBox.Size = new System.Drawing.Size(118, 22);
+            this.curvedCheckBox.TabIndex = 1;
+            this.curvedCheckBox.Text = "Curved path";
+            this.curvedCheckBox.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
+            this.curvedCheckBox.UseVisualStyleBackColor = true;
+            // 
             // worldLoader
             // 
             this.worldLoader.Location = new System.Drawing.Point(3, 299);
@@ -363,17 +377,15 @@
             this.openFileDialog1.FileName = "openFileDialog1";
             this.openFileDialog1.Filter = "Text files|*.txt|All files|*.*";
             // 
-            // curvedCheckBox
+            // progressLabel
             // 
-            this.curvedCheckBox.AutoSize = true;
-            this.curvedCheckBox.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.curvedCheckBox.Location = new System.Drawing.Point(3, 271);
-            this.curvedCheckBox.Name = "curvedCheckBox";
-            this.curvedCheckBox.Size = new System.Drawing.Size(118, 22);
-            this.curvedCheckBox.TabIndex = 1;
-            this.curvedCheckBox.Text = "Curved path";
-            this.curvedCheckBox.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
-            this.curvedCheckBox.UseVisualStyleBackColor = true;
+            this.progressLabel.AutoSize = true;
+            this.progressLabel.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.progressLabel.Location = new System.Drawing.Point(3, 346);
+            this.progressLabel.Name = "progressLabel";
+            this.progressLabel.Size = new System.Drawing.Size(118, 18);
+            this.progressLabel.TabIndex = 4;
+            this.progressLabel.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
             // 
             // Form1
             // 
@@ -435,6 +447,7 @@
         private System.Windows.Forms.Label label10;
         private System.Windows.Forms.TextBox goalYBox;
         private System.Windows.Forms.CheckBox curvedCheckBox;
+        private System.Windows.Forms.Label progressLabel;
     }
 }
 

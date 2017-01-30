@@ -62,6 +62,11 @@ namespace SMTMotionPlanning
                     if (int.TryParse(widthEntryBox.Text, out width) && int.TryParse(lengthEntryBox.Text, out length))
                     {
                         world = new Space2D(width, length);
+                        if (checkIfAgentIsInWorld() == false)
+                        {
+                            showParameterError();
+                            return;
+                        }
                         foreach (Obstacle o in obstacles)
                             world.obstacles.Add(o);
                         scaleForm();
@@ -106,6 +111,8 @@ namespace SMTMotionPlanning
                 curvedPath = curvedCheckBox.Checked;
                 path = new List<Coordinate>();
                 transformNonRectangularObstacles();
+                progressLabel.Text = "Finding path...";
+                progressLabel.Invalidate();
                 for (int i = 1; i <= 100; i++)
                 {
                     PathFinding finder = new PathFinding(agent.currentLocation, goalLocation, i, distance, 50000, world, curvedPath);
@@ -123,7 +130,10 @@ namespace SMTMotionPlanning
                 if (path.Count == 0)
                     showPathError("There is no clear available path to goal location.");
                 else
+                {
                     pathCalculated = true;
+                    progressLabel.Text = "Path calculated.";
+                }
             }
             else
                 showPathError("Some parameters were not set.");
@@ -233,12 +243,7 @@ namespace SMTMotionPlanning
             List<Obstacle> newObstacles = new List<Obstacle>();
             foreach (Obstacle o in world.obstacles)
             {
-                if (o.type == Obstacle.ObstacleType.Polygon)
-                {
-                    List<RectangularObstacle> discreteObstacles = ((PolygonalObstacle)o).transformObstacle(distance);
-                    newObstacles = newObstacles.Concat(discreteObstacles).ToList();
-                }
-                else if (o.type == Obstacle.ObstacleType.Spline)
+                if (o.type == Obstacle.ObstacleType.Spline)
                 {
                     List<RectangularObstacle> discreteObstacles = ((SplineObstacle)o).transformObstacle(distance);
                     newObstacles = newObstacles.Concat(discreteObstacles).ToList();
@@ -509,6 +514,8 @@ namespace SMTMotionPlanning
         private void optimisePath(int pathSegments)
         {
             int pathLength = 0;
+            progressLabel.Text = "Optimising...";
+            progressLabel.Invalidate();
             for (int i = 0; i < path.Count - 1; i++)
             {
                 pathLength += Coordinate.getXDistanceBetweenCoordinates(path[i], path[i + 1]) +
@@ -533,6 +540,15 @@ namespace SMTMotionPlanning
                     decrementor = (int)(decrementor * 0.9);
                 }
             }
+        }
+
+        private bool checkIfAgentIsInWorld()
+        {
+            if (agent.currentLocation.x < 0 || agent.currentLocation.x > world.width)
+                return false;
+            if (agent.currentLocation.y < 0 || agent.currentLocation.y > world.length)
+                return false;
+            return true;
         }
     }
 }

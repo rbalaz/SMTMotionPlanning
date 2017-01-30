@@ -71,7 +71,7 @@ namespace SMTMotionPlanning
             BoolExpr avoidingObstacles = avoidObstacles(world, ctx, sourcesX, sourcesY, destinationsX, destinationsY);
             BoolExpr pathLengthConstraint = generatePathLengthConstraint(ctx, sourcesX, sourcesY, destinationsX, destinationsY);
 
-            Solver s = ctx.MkSolver();
+            Solver s = ctx.MkSolver(ctx.MkTactic("qfnra-nlsat"));
             s.Assert(worldSizeConstraints);
             if (!(curvedPath))
                 s.Assert(movementConstraints);
@@ -115,7 +115,8 @@ namespace SMTMotionPlanning
             throw new NotImplementedException();
         }
 
-        private BoolExpr generateWorldSizeConstraints(Context ctx, IntExpr[] sourcesX, IntExpr[] sourcesY, IntExpr[] destinationsX, IntExpr[] destinationsY)
+        private BoolExpr generateWorldSizeConstraints(Context ctx, IntExpr[] sourcesX, IntExpr[] sourcesY, 
+            IntExpr[] destinationsX, IntExpr[] destinationsY)
         {
             // First input into SMT solver: Field of constrainsConj.
             // Contains constrains for movement so that agent will not try to move out of world, surpassing one its parameters
@@ -137,7 +138,8 @@ namespace SMTMotionPlanning
             return ctx.MkAnd(constrains);
         }
 
-        private BoolExpr generateMovementConstraint(Context ctx, IntExpr[] sourcesX, IntExpr[] sourcesY, IntExpr[] destinationsX, IntExpr[] destinationsY)
+        private BoolExpr generateMovementConstraint(Context ctx, IntExpr[] sourcesX, IntExpr[] sourcesY, 
+            IntExpr[] destinationsX, IntExpr[] destinationsY)
         {
             // Second input into SMT solver: field of bothDogsConj
             BoolExpr[] dogX = new BoolExpr[pathSegments];
@@ -156,7 +158,8 @@ namespace SMTMotionPlanning
             return ctx.MkAnd(bothDogs);
         }
 
-        private BoolExpr generateStartAndGoal(Context ctx, IntExpr[] sourcesX, IntExpr[] sourcesY, IntExpr[] destinationsX, IntExpr[] destinationsY)
+        private BoolExpr generateStartAndGoal(Context ctx, IntExpr[] sourcesX, IntExpr[] sourcesY, IntExpr[] destinationsX, 
+            IntExpr[] destinationsY)
         {
             // Third input into SMT solver: prerequisites expression
             // These expressions only mark the start and goal location in the sources and destinations fields
@@ -173,7 +176,8 @@ namespace SMTMotionPlanning
             return ctx.MkAnd(new BoolExpr[] { initialXPosition, initialYPosition, goalXPosition, goalYPosition });
         }
 
-        private BoolExpr joinPathSegments(Context ctx, IntExpr[] sourcesX, IntExpr[] sourcesY, IntExpr[] destinationsX, IntExpr[] destinationsY)
+        private BoolExpr joinPathSegments(Context ctx, IntExpr[] sourcesX, IntExpr[] sourcesY, IntExpr[] destinationsX, 
+            IntExpr[] destinationsY)
         {
             // Fourth input into SMT solver: pathSegmentsConj field
             // Connection of previous and following path segments
@@ -190,7 +194,8 @@ namespace SMTMotionPlanning
             return ctx.MkAnd(pathSegmentsXConj, pathSegmentsYConj);
         }
 
-        private BoolExpr generatePathLengthConstraint(Context ctx, IntExpr[] sourcesX, IntExpr[] sourcesY, IntExpr[] destinationsX, IntExpr[] destinationsY)
+        private BoolExpr generatePathLengthConstraint(Context ctx, IntExpr[] sourcesX, IntExpr[] sourcesY, 
+            IntExpr[] destinationsX, IntExpr[] destinationsY)
         {
             // Potentially sixth input into SMT solver is the path length constraint
             ArithExpr[] lengthParts = new ArithExpr[pathSegments];
@@ -211,7 +216,8 @@ namespace SMTMotionPlanning
             return finalExpression;
         }
 
-        private BoolExpr avoidObstacles(Space world, Context ctx, IntExpr[] sourcesX, IntExpr[] sourcesY, IntExpr[] destinationsX, IntExpr[] destinationsY)
+        private BoolExpr avoidObstacles(Space world, Context ctx, IntExpr[] sourcesX, IntExpr[] sourcesY, 
+            IntExpr[] destinationsX, IntExpr[] destinationsY)
         {
             // Fifth input into SMT solver: avoidingObstaclesCombinedConj field
             // Defines the way on how agent is supposed to avoid obstacles, including distance it needs to keep when 
@@ -221,6 +227,10 @@ namespace SMTMotionPlanning
             {
                 switch (world.obstacles[i].type)
                 {
+                    case Obstacle.ObstacleType.Polygon:
+                        obstacles.Add(handlePolygonalObstacle((PolygonalObstacle)world.obstacles[i], ctx, sourcesX, sourcesY,
+                            destinationsX, destinationsY));
+                        break;
                     case Obstacle.ObstacleType.Ellipse:
                         obstacles.Add(handleEllipticalObstacle((EllipticalObstacle)world.obstacles[i], ctx, destinationsX, destinationsY, sourcesX, sourcesY));
                         break;
@@ -236,14 +246,44 @@ namespace SMTMotionPlanning
             return ctx.MkAnd(obstacles.ToArray());
         }
 
-        private BoolExpr handleEllipticalObstacle(EllipticalObstacle obstacle, Context ctx, IntExpr[] destinationsX, IntExpr[] destinationsY, IntExpr[] sourcesX, IntExpr[] sourcesY)
+        private BoolExpr handleEllipticalObstacle(EllipticalObstacle obstacle, Context ctx, IntExpr[] destinationsX, 
+            IntExpr[] destinationsY, IntExpr[] sourcesX, IntExpr[] sourcesY)
         {
-            RectangularObstacle rectangle = new RectangularObstacle(obstacle.length, obstacle.width,
-                new Coordinate(obstacle.location.x - obstacle.width / 2, obstacle.location.y - obstacle.length / 2));
-            return handleRectangularObstacle(rectangle, ctx, sourcesX, sourcesY, destinationsX, destinationsY);
+            if (obstacle.length != obstacle.width)
+            {
+                RectangularObstacle rectangle = new RectangularObstacle(obstacle.length, obstacle.width,
+                    new Coordinate(obstacle.location.x - obstacle.width / 2, obstacle.location.y - obstacle.length / 2));
+                return handleRectangularObstacle(rectangle, ctx, sourcesX, sourcesY, destinationsX, destinationsY);
+            }
+            else
+            {
+                BoolExpr[] avoidingCircle = new BoolExpr[pathSegments];
+                NumberFormatInfo dot = new NumberFormatInfo();
+                dot.NumberDecimalSeparator = ".";
+                for (int i = 0; i < pathSegments; i++)
+                {
+                    double radius = obstacle.length / 2.0 + obstaclePassDistance;
+                    IntExpr x0 = ctx.MkInt(obstacle.location.x);
+                    IntExpr y0 = ctx.MkInt(obstacle.location.y);
+                    RealExpr r = ctx.MkReal(radius.ToString(dot));
+                    ArithExpr dx = ctx.MkSub(destinationsX[i], sourcesX[i]);
+                    ArithExpr dy = ctx.MkSub(destinationsY[i], sourcesY[i]);
+                    ArithExpr fx = ctx.MkSub(sourcesX[i], x0);
+                    ArithExpr fy = ctx.MkSub(sourcesY[i], y0);
+                    ArithExpr a = ctx.MkAdd(ctx.MkMul(dx, dx), ctx.MkMul(dy, dy));
+                    ArithExpr b = ctx.MkMul(ctx.MkAdd(ctx.MkMul(dx, fx), ctx.MkMul(dy, fy)),ctx.MkInt(2));
+                    ArithExpr c = ctx.MkSub(ctx.MkAdd(ctx.MkMul(fx, fx), ctx.MkMul(fy, fy)), ctx.MkMul(r, r));
+                    ArithExpr discriminant = ctx.MkSub(ctx.MkMul(b, b), ctx.MkMul(ctx.MkInt(4), a, c));
+                    BoolExpr final = ctx.MkLt(discriminant, ctx.MkInt(0));
+
+                    avoidingCircle[i] = final;
+                }
+                return ctx.MkAnd(avoidingCircle);
+            }
         }
 
-        private BoolExpr handleRectangularObstacle(RectangularObstacle obstacle, Context ctx, IntExpr[] sourcesX, IntExpr[] sourcesY, IntExpr[] destinationsX, IntExpr[] destinationsY)
+        private BoolExpr handleRectangularObstacle(RectangularObstacle obstacle, Context ctx, IntExpr[] sourcesX, 
+            IntExpr[] sourcesY, IntExpr[] destinationsX, IntExpr[] destinationsY)
         {
             IntExpr obstacleLeftX = ctx.MkInt(obstacle.location.x);
             IntExpr obstacleRightX = ctx.MkInt(obstacle.location.x + obstacle.width);
@@ -275,7 +315,8 @@ namespace SMTMotionPlanning
             return ctx.MkAnd(avoidingObstaclesCombined);
         }
 
-        private BoolExpr handleRealRectangularObstacle(RectangularObstacle obstacle, Context ctx, IntExpr[] sourcesX, IntExpr[] sourcesY, IntExpr[] destinationsX, IntExpr[] destinationsY)
+        private BoolExpr handleRealRectangularObstacle(RectangularObstacle obstacle, Context ctx, IntExpr[] sourcesX, 
+            IntExpr[] sourcesY, IntExpr[] destinationsX, IntExpr[] destinationsY)
         {
             RealExpr obstacleLeftX = ctx.MkReal(obstacle.realLocation.x.ToString(new CultureInfo("en-US")));
             RealExpr obstacleRightX = ctx.MkReal((obstacle.realLocation.x + obstacle.width).ToString(new CultureInfo("en-US")));
@@ -305,6 +346,148 @@ namespace SMTMotionPlanning
             }
 
             return ctx.MkAnd(avoidingObstaclesCombined);
+        }
+
+        private BoolExpr handlePolygonalObstacle(PolygonalObstacle obstacle, Context ctx, IntExpr[] sourcesX, IntExpr[] sourcesY,
+            IntExpr[] destinationsX, IntExpr[] destinationsY)
+        {
+            List<LineSegment> segments = obstacle.getLines();
+            List<BoolExpr> avoidingLines = new List<BoolExpr>();
+            foreach (LineSegment segment in segments)
+            {
+                if (segment.isHorizontal)
+                {
+                    int leftX = (segment.start.x < segment.end.x ? segment.start.x : segment.end.x) - obstaclePassDistance;
+                    int leftY = segment.start.y - obstaclePassDistance;
+                    RectangularObstacle rectangle = new RectangularObstacle(2 * obstaclePassDistance,
+                        Coordinate.getXDistanceBetweenCoordinates(segment.start, segment.end) + 2 * obstaclePassDistance,
+                        new Coordinate(leftX, leftY));
+                    avoidingLines.Add(handleRectangularObstacle(rectangle, ctx, sourcesX, sourcesY, destinationsX, destinationsY));
+                }
+                else if (segment.isVertical)
+                {
+                    int leftY = (segment.start.y < segment.end.y ? segment.start.y : segment.end.y) - obstaclePassDistance;
+                    int leftX = segment.start.x - obstaclePassDistance;
+                    RectangularObstacle rectangle = new RectangularObstacle(Coordinate.getYDistanceBetweenCoordinates(segment.start, segment.end)
+                        + 2 * obstaclePassDistance, 2 * obstaclePassDistance, new Coordinate(leftX, leftY));
+                    avoidingLines.Add(handleRectangularObstacle(rectangle, ctx, sourcesX, sourcesY, destinationsX, destinationsY));
+                }
+                else
+                {
+                    avoidingLines.Add(handleCurvedLine(segment, ctx, sourcesX, sourcesY, destinationsX, destinationsY));
+                    // Circle obstacles are added with start and end segments as their centers and obstacle pass distance
+                    // as their radius
+                    EllipticalObstacle first = new EllipticalObstacle(segment.start, obstaclePassDistance, obstaclePassDistance);
+                    EllipticalObstacle second = new EllipticalObstacle(segment.end, obstaclePassDistance, obstaclePassDistance);
+                    BoolExpr avoidingFirst = handleEllipticalObstacle(first, ctx, sourcesX, sourcesY, destinationsX, destinationsY);
+                    BoolExpr avoidingSecond = handleEllipticalObstacle(second, ctx, sourcesX, sourcesY, destinationsX, destinationsY);
+                    avoidingLines.Add(avoidingFirst);
+                    avoidingLines.Add(avoidingSecond);
+                }
+            }
+
+            return ctx.MkAnd(avoidingLines.ToArray());
+        }
+
+        private BoolExpr handleCurvedLine(LineSegment segment, Context ctx, IntExpr[] sourcesX, IntExpr[] sourcesY,
+            IntExpr[] destinationsX, IntExpr[] destinationsY)
+        {
+            double k = (double)(segment.end.y - segment.start.y) / (double)(segment.end.x - segment.start.x);
+            double q = segment.start.y - k * segment.start.x;
+            // Part 1: Getting the perpendicular lines equations parameters
+            double kp = -1 / k;
+            double qp1 = segment.start.y - kp * segment.start.x;
+            double qp2 = segment.end.y - kp * segment.end.x;
+            // Part 2: Getting the final line points
+            double A = 1 + kp * kp;
+            double B1 = 2 * kp * qp1 - 2 * segment.start.x - 2 * kp * segment.start.y;
+            double B2 = 2 * kp * qp2 - 2 * segment.end.x - 2 * kp * segment.end.y;
+            double C1 = segment.start.x * segment.start.x + qp1 * qp1 - 2 * qp1 * segment.start.y + 
+                segment.start.y * segment.start.y - obstaclePassDistance * obstaclePassDistance;
+            double C2 = segment.end.x * segment.end.x + qp2 * qp2 - 2 * qp2 * segment.end.y + 
+                segment.end.y * segment.end.y - obstaclePassDistance * obstaclePassDistance;
+            double x1 = (-B1 + Math.Sqrt(B1 * B1 - 4 * A * C1)) / (2 * A);
+            double x2 = (-B1 - Math.Sqrt(B1 * B1 - 4 * A * C1)) / (2 * A);
+            double x3 = (-B2 + Math.Sqrt(B2 * B2 - 4 * A * C2)) / (2 * A);
+            double x4 = (-B2 - Math.Sqrt(B2 * B2 - 4 * A * C2)) / (2 * A);
+            double y1 = kp * x1 + qp1;
+            double y2 = kp * x2 + qp1;
+            double y3 = kp * x3 + qp2;
+            double y4 = kp * x4 + qp2;
+            // Part 3: Getting parameters of parallel lines from evaluated points
+            RealLineSegment upperParallelLine, lowerParallelLine;
+            if (y1 < y2)
+            {
+                upperParallelLine = new RealLineSegment(k, y1 - k * x1, new RealCoordinate(x1, y1), new RealCoordinate(x3, y3));
+                lowerParallelLine = new RealLineSegment(k, y2 - k * x2, new RealCoordinate(x2, y2), new RealCoordinate(x4, y4));
+            }
+            else
+            {
+                upperParallelLine = new RealLineSegment(k, y2 - k * x2, new RealCoordinate(x2, y2), new RealCoordinate(x4, y4));
+                lowerParallelLine = new RealLineSegment(k, y1 - k * x1, new RealCoordinate(x1, y1), new RealCoordinate(x3, y3));
+            }
+            // Part 4: Getting parameters of perpendicular lines
+            RealLineSegment upperPerpendicularLine, lowerPerpendicularLine;
+            if (segment.start.y < segment.end.y)
+            {
+                upperPerpendicularLine = new RealLineSegment(kp, qp1, new RealCoordinate(segment.start.x, segment.start.y),
+                    new RealCoordinate(x1, y1));
+                lowerPerpendicularLine = new RealLineSegment(kp, qp2, new RealCoordinate(segment.end.x, segment.end.y),
+                    new RealCoordinate(x3, y3));
+            }
+            else
+            {
+                upperPerpendicularLine = new RealLineSegment(kp, qp2, new RealCoordinate(segment.end.x, segment.end.y),
+                    new RealCoordinate(x3, y3));
+                lowerPerpendicularLine = new RealLineSegment(kp, qp1, new RealCoordinate(segment.start.x, segment.start.y),
+                    new RealCoordinate(x1, y1));
+            }
+            // Part 5: Composing formulas 
+            BoolExpr[] avoidingLines = new BoolExpr[pathSegments];
+            NumberFormatInfo dot = new NumberFormatInfo();
+            dot.NumberDecimalSeparator = ".";
+            for (int i = 0; i < sourcesX.Length; i++)
+            {
+                // Part 5.1: Formulas for parallel lines
+                ArithExpr sourcekupx_plus_q = ctx.MkAdd(ctx.MkMul(ctx.MkReal(upperParallelLine.k.ToString(dot)), sourcesX[i]), 
+                    ctx.MkReal(upperParallelLine.q.ToString(dot)));
+                BoolExpr sourceup_part = ctx.MkLe(sourcesY[i], sourcekupx_plus_q);
+                ArithExpr destkupx_plus_q = ctx.MkAdd(ctx.MkMul(ctx.MkReal(upperParallelLine.k.ToString(dot)), destinationsX[i]),
+                    ctx.MkReal(upperParallelLine.q.ToString(dot)));
+                BoolExpr destup_part = ctx.MkLe(destinationsY[i], destkupx_plus_q);
+
+                ArithExpr sourceklox_plus_q = ctx.MkAdd(ctx.MkMul(ctx.MkReal(lowerParallelLine.k.ToString(dot)), sourcesX[i]),
+                    ctx.MkReal(lowerParallelLine.q.ToString(dot)));
+                BoolExpr sourcelo_part = ctx.MkGe(sourcesY[i], sourceklox_plus_q);
+                ArithExpr destklox_plus_q = ctx.MkAdd(ctx.MkMul(ctx.MkReal(lowerParallelLine.k.ToString(dot)), destinationsX[i]),
+                    ctx.MkReal(lowerParallelLine.q.ToString(dot)));
+                BoolExpr destlo_part = ctx.MkGe(destinationsY[i], destklox_plus_q);
+
+                BoolExpr conjUpPar = ctx.MkAnd(sourceup_part, destup_part);
+                BoolExpr conjLoPar = ctx.MkAnd(sourcelo_part, destlo_part);
+
+                // Part 5.2: Formulas for perpendicular lines
+                ArithExpr sourceperkupx_plus_q = ctx.MkAdd(ctx.MkMul(ctx.MkReal(upperPerpendicularLine.k.ToString(dot)), 
+                    sourcesX[i]), ctx.MkReal(upperPerpendicularLine.q.ToString(dot)));
+                BoolExpr sourceperup_part = ctx.MkLe(sourcesY[i], sourceperkupx_plus_q);
+                ArithExpr destperkupx_plus_q = ctx.MkAdd(ctx.MkMul(ctx.MkReal(upperPerpendicularLine.k.ToString(dot)),
+                    destinationsX[i]), ctx.MkReal(upperPerpendicularLine.q.ToString(dot)));
+                BoolExpr destperup_part = ctx.MkLe(destinationsY[i], destperkupx_plus_q);
+
+                ArithExpr sourceperklox_plus_q = ctx.MkAdd(ctx.MkMul(ctx.MkReal(lowerPerpendicularLine.k.ToString(dot)),
+                    sourcesX[i]), ctx.MkReal(lowerPerpendicularLine.q.ToString(dot)));
+                BoolExpr sourceperlo_part = ctx.MkGe(sourcesY[i], sourceperklox_plus_q);
+                ArithExpr destperklox_plus_q = ctx.MkAdd(ctx.MkMul(ctx.MkReal(lowerPerpendicularLine.k.ToString(dot)),
+                    destinationsX[i]), ctx.MkReal(lowerPerpendicularLine.q.ToString(dot)));
+                BoolExpr destperlo_part = ctx.MkGe(destinationsY[i], destperklox_plus_q);
+
+                BoolExpr conjUpPer = ctx.MkAnd(sourceperup_part, destperup_part);
+                BoolExpr conjLoPer = ctx.MkAnd(sourceperlo_part, destperlo_part);
+
+                avoidingLines[i] = ctx.MkOr(conjUpPar, conjLoPar, conjUpPer, conjLoPer);
+            }
+
+            return ctx.MkAnd(avoidingLines);
         }
     }
 }
