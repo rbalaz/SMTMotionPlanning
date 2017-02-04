@@ -124,7 +124,7 @@ namespace SMTMotionPlanning
                     {
                         continue;
                     }
-                    optimisePath(i);
+                    //optimisePath(i);
                     break;
                 }
                 if (path.Count == 0)
@@ -489,7 +489,7 @@ namespace SMTMotionPlanning
         {
             // Minimum Form size: 640 * 480
             // Form designed rescaled, first column now has 25.58%
-            double newWidth = world.width * 1.35;
+            double newWidth = world.width * 1.375;
             double newLength = world.length * 1.2;
 
             if (newWidth != Width || newWidth != Height)
