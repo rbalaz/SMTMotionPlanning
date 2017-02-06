@@ -15,6 +15,8 @@ namespace SMTMotionPlanning
 
         private List<Obstacle> obstacles;
         private List<Coordinate> path;
+        // Temporary list to check fitness of paths
+        private List<Coordinate[]> paths = new List<Coordinate[]>();
         private Coordinate goalLocation;
         private Pen obstaclePen;
         private Pen pathPen;
@@ -113,6 +115,7 @@ namespace SMTMotionPlanning
                 transformNonRectangularObstacles();
                 progressLabel.Text = "Finding path...";
                 progressLabel.Invalidate();
+                int pathSegments = 0;
                 for (int i = 1; i <= 100; i++)
                 {
                     PathFinding finder = new PathFinding(agent.currentLocation, goalLocation, i, distance, 50000, world, curvedPath);
@@ -124,13 +127,15 @@ namespace SMTMotionPlanning
                     {
                         continue;
                     }
-                    //optimisePath(i);
+                    pathSegments = i;
                     break;
                 }
                 if (path.Count == 0)
                     showPathError("There is no clear available path to goal location.");
                 else
                 {
+                    paths.Add(path.ToArray());
+                    optimisePath(pathSegments, distance);
                     pathCalculated = true;
                     progressLabel.Text = "Path calculated.";
                 }
@@ -512,7 +517,20 @@ namespace SMTMotionPlanning
             MessageBox.Show(message, caption, MessageBoxButtons.OK, MessageBoxIcon.Error);
         }
 
-        private void optimisePath(int pathSegments)
+        private void optimisePath(int pathSegments, int obstaclePassDistance)
+        {
+            PathFinding finder = new PathFinding(agent.currentLocation, goalLocation, pathSegments + 1, obstaclePassDistance, 50000, world, curvedPath);
+            Coordinate[] longerPathOne = finder.findPath();
+            paths.Add(longerPathOne);
+            finder = new PathFinding(agent.currentLocation, goalLocation, pathSegments + 2, obstaclePassDistance, 50000, world, curvedPath);
+            Coordinate[] longerPathTwo = finder.findPath();
+            paths.Add(longerPathTwo);
+
+            optimisePathLength(longerPathOne.Length - 1, longerPathOne.ToList());
+            optimisePathLength(longerPathTwo.Length - 1, longerPathTwo.ToList());
+        }
+
+        private void optimisePathLength(int pathSegments, List<Coordinate> path)
         {
             int pathLength = 0;
             progressLabel.Text = "Optimising...";
@@ -522,8 +540,11 @@ namespace SMTMotionPlanning
                 pathLength += Coordinate.getXDistanceBetweenCoordinates(path[i], path[i + 1]) +
                     Coordinate.getYDistanceBetweenCoordinates(path[i], path[i + 1]);
             }
+            double bestFitness = evaluateFitnessValueOfPath(this.path.ToArray());
+
 
             int decrementor = pathLength / 10;
+            int decrementorChange = (int)(decrementor / 10);
             while (decrementor > 0)
             {
                 pathLength -= decrementor;
@@ -532,13 +553,17 @@ namespace SMTMotionPlanning
                 try
                 {
                     Coordinate[] newPath = finder.findPath();
-                    path = new List<Coordinate>();
-                    path.AddRange(newPath);
+                    paths.Add(newPath);
+                    if (bestFitness > evaluateFitnessValueOfPath(newPath))
+                    {
+                        this.path = new List<Coordinate>();
+                        this.path.AddRange(newPath);
+                        bestFitness = evaluateFitnessValueOfPath(newPath);
+                    }
                 }
                 catch (PathFinding.TestFailedException)
                 {
-                    pathLength += decrementor;
-                    decrementor = (int)(decrementor * 0.9);
+                    break;
                 }
             }
         }
@@ -550,6 +575,60 @@ namespace SMTMotionPlanning
             if (agent.currentLocation.y < 0 || agent.currentLocation.y > world.length)
                 return false;
             return true;
+        }
+
+        private double evaluateFitnessValueOfPath(Coordinate[] path)
+        {
+            double fitness = 0;
+
+            // Sharpness of turns
+            // 90 degree turn... 150
+            // 0 degree turn... 0
+            // linear dependence
+            if (path.Length > 2)
+            {
+                for (int i = 0; i < path.Length - 3; i++)
+                {
+                    double k1 = (double)(path[i + 1].y - path[i].y) / (double)(path[i + 1].x - path[i].x);
+                    double q1 = path[i].y - path[i].x * k1;
+                    double k2 = (double)(path[i + 2].y - path[i + 1].y) / (double)(path[i + 2].x - path[i + 1].x);
+                    double q2 = path[i + 1].y - path[i + 1].x * k1;
+                    LineSegment first = new LineSegment(k1, q1, path[i], path[i + 1]);
+                    LineSegment second = new LineSegment(k2, q2, path[i + 1], path[i + 2]);
+                    double angle = evaluateAngleBetweenTwoLineSegments(first, second);
+                    fitness += 15.0 / 9.0 * angle;
+                }
+            }
+
+            // Path length
+            double airDistance = Math.Pow(Coordinate.getXDistanceBetweenCoordinates(path[0], path[path.Length - 1]), 2) +
+                Math.Pow(Coordinate.getYDistanceBetweenCoordinates(path[0], path[path.Length - 1]), 2);
+            fitness += evaluatePathLength(path) / airDistance * 100;
+
+            return fitness;
+        }
+
+        private double evaluateAngleBetweenTwoLineSegments(LineSegment first, LineSegment second)
+        {
+            if (double.IsInfinity(first.k))
+                return Math.Atan(Math.Abs(second.k)) * 180 / Math.PI;
+            else if (double.IsInfinity(second.k))
+                return Math.Atan(Math.Abs(first.k)) * 180 / Math.PI;
+            else
+                return Math.Atan(Math.Abs((first.k - second.k) / (1 + first.k * second.k))) * Math.PI;
+        }
+
+        private double evaluatePathLength(Coordinate[] path)
+        {
+            double pathLength = 0;
+
+            for (int i = 0; i < path.Length - 2; i++)
+            {
+                pathLength += Math.Pow(Coordinate.getXDistanceBetweenCoordinates(path[i], path[i + 1]), 2) +
+                Math.Pow(Coordinate.getYDistanceBetweenCoordinates(path[i], path[i + 1]), 2);
+            }
+
+            return pathLength;
         }
     }
 }

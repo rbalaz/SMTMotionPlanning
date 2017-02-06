@@ -165,7 +165,7 @@ namespace SMTMotionPlanning
             BoolExpr[] bothDogs = new BoolExpr[pathSegments];
             for (int i = 0; i < pathSegments; i++)
             {
-                bothDogs[i] = ctx.MkOr(dogX[i], dogY[i]);
+                bothDogs[i] = ctx.MkXor(dogX[i], dogY[i]);
             }
 
             return ctx.MkAnd(bothDogs);

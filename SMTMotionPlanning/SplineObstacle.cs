@@ -63,7 +63,22 @@ namespace SMTMotionPlanning
             double[] x = obstacle.points.Select(item => (double)item.x).ToArray();
             double[] y = obstacle.points.Select(item => (double)item.y).ToArray();
 
-            Polynom poly = new Polynom(Polyfit(x, y, obstacle.points.Count - 1).Reverse().ToArray());
+            double[] coeficients = Polyfit(x, y, obstacle.points.Count - 1).Reverse().ToArray();
+            bool functionFlag = false;
+            if (isFunctionByY(coeficients))
+            {
+                coeficients = Polyfit(y, x, obstacle.points.Count - 1).Reverse().ToArray();
+                functionFlag = true;
+            }
+            Polynom poly = new Polynom(coeficients, functionFlag);
+            if (functionFlag == false)
+                return segmentSplineByX(obstacle, poly, obstaclePassDistance);
+            else
+                return segmentSplineByY(obstacle, poly, obstaclePassDistance);
+        }
+
+        private List<RectangularObstacle> segmentSplineByX(SplineObstacle obstacle, Polynom poly, int obstaclePassDistance)
+        {
             RealCoordinate current = new RealCoordinate(obstacle.points[0].x, obstacle.points[0].y - obstaclePassDistance);
             RealCoordinate end = new RealCoordinate(obstacle.points[obstacle.points.Count - 1].x,
                 obstacle.points[obstacle.points.Count - 1].y);
@@ -92,6 +107,52 @@ namespace SMTMotionPlanning
             obstacles.Add(lastObstacle);
 
             return obstacles;
+        }
+
+        private List<RectangularObstacle> segmentSplineByY(SplineObstacle obstacle, Polynom poly, int obstaclePassDistance)
+        {
+            RealCoordinate current = new RealCoordinate(obstacle.points[0].x, obstacle.points[0].y - obstaclePassDistance);
+            RealCoordinate end = new RealCoordinate(obstacle.points[obstacle.points.Count - 1].x,
+                obstacle.points[obstacle.points.Count - 1].y);
+            List<RectangularObstacle> obstacles = new List<RectangularObstacle>();
+            RectangularObstacle firstObstacle = new RectangularObstacle(obstaclePassDistance, 2 * obstaclePassDistance,
+                new RealCoordinate(current.x - obstaclePassDistance, current.y - obstaclePassDistance));
+            obstacles.Add(firstObstacle);
+            do
+            {
+                RectangularObstacle rect = new RectangularObstacle(2, 2 * obstaclePassDistance,
+                    new RealCoordinate(current.x, current.y));
+                obstacles.Add(rect);
+                if (current.y + 2 <= end.y)
+                {
+                    current.y += 2;
+                    current.x = poly.getPolynomValue(current.y) - obstaclePassDistance;
+                }
+                else
+                {
+                    current.x = end.x;
+                    current.y = end.y;
+                }
+            } while (RealCoordinate.getDistanceBetweenCoordinates(current, end) != 0);
+            RectangularObstacle lastObstacle = new RectangularObstacle(obstaclePassDistance, 2 * obstaclePassDistance,
+                new RealCoordinate(current.x, current.y));
+            obstacles.Add(lastObstacle);
+
+            return obstacles;
+        }
+
+        private bool isFunctionByY(double[] coeficient)
+        {
+            for (int i = 0; i < coeficient.Length; i++)
+            {
+                if (double.IsNaN(coeficient[i]))
+                    return true;
+                if (double.IsNegativeInfinity(coeficient[i]))
+                    return true;
+                if (double.IsPositiveInfinity(coeficient[i]))
+                    return true;
+            }
+            return false;
         }
     }
 }

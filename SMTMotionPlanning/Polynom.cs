@@ -9,10 +9,12 @@ namespace SMTMotionPlanning
     class Polynom
     {
         private double[] coeficients;
+        private bool functionByY;
 
-        public Polynom(double[] coeficients)
+        public Polynom(double[] coeficients, bool functionByY)
         {
             this.coeficients = coeficients;
+            this.functionByY = functionByY;
         }
 
         public double getPolynomValue(double x)
