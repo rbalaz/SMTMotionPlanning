@@ -9,7 +9,7 @@ using System.Threading;
 
 namespace SMTMotionPlanning
 {
-    public partial class Form1 : Form
+    public partial class PlanningForm : Form
     {
         class InvalidFileFormatException : Exception { }
 
@@ -30,7 +30,7 @@ namespace SMTMotionPlanning
         private int distance;
         private bool curvedPath;
 
-        public Form1()
+        public PlanningForm()
         {
             InitializeComponent();
             obstaclePen = new Pen(Color.Red, 5);
@@ -42,7 +42,7 @@ namespace SMTMotionPlanning
             pathDrawn = false;
         }
 
-        public Form1(List<Obstacle> obstacles) : base()
+        public PlanningForm(List<Obstacle> obstacles) : base()
         {
             this.obstacles = obstacles;
         }
@@ -116,7 +116,7 @@ namespace SMTMotionPlanning
                 progressLabel.Text = "Finding path...";
                 progressLabel.Invalidate();
                 int pathSegments = 0;
-                for (int i = 1; i <= 100; i++)
+                for (int i = 1; i <= 30; i++)
                 {
                     PathFinding finder = new PathFinding(agent.currentLocation, goalLocation, i, distance, 50000, world, curvedPath);
                     try
@@ -136,6 +136,9 @@ namespace SMTMotionPlanning
                 {
                     paths.Add(path.ToArray());
                     optimisePath(pathSegments, distance);
+                    PathCommandsGenerator generator = new PathCommandsGenerator(227, path, world.width, world.length);
+                    generator.initialOrientation = 0.0;
+                    generator.generateAndSaveCommands();
                     pathCalculated = true;
                     progressLabel.Text = "Path calculated.";
                 }
@@ -629,6 +632,12 @@ namespace SMTMotionPlanning
             }
 
             return pathLength;
+        }
+
+        private void captureButton_Click(object sender, EventArgs e)
+        {
+            SegmentationForm segForm = new SegmentationForm();
+            segForm.Show();
         }
     }
 }

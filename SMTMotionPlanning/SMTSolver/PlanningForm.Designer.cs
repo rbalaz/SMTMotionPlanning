@@ -1,6 +1,6 @@
 ﻿namespace SMTMotionPlanning
 {
-    partial class Form1
+    partial class PlanningForm
     {
         /// <summary>
         /// Required designer variable.
@@ -57,6 +57,7 @@
             this.curvedCheckBox = new System.Windows.Forms.CheckBox();
             this.worldLoader = new System.Windows.Forms.Button();
             this.progressLabel = new System.Windows.Forms.Label();
+            this.captureButton = new System.Windows.Forms.Button();
             this.flowLayoutPanel5 = new System.Windows.Forms.FlowLayoutPanel();
             this.label8 = new System.Windows.Forms.Label();
             this.distanceBox = new System.Windows.Forms.TextBox();
@@ -166,6 +167,7 @@
             this.flowLayoutPanel2.Controls.Add(this.curvedCheckBox);
             this.flowLayoutPanel2.Controls.Add(this.worldLoader);
             this.flowLayoutPanel2.Controls.Add(this.progressLabel);
+            this.flowLayoutPanel2.Controls.Add(this.captureButton);
             this.flowLayoutPanel2.Dock = System.Windows.Forms.DockStyle.Fill;
             this.flowLayoutPanel2.FlowDirection = System.Windows.Forms.FlowDirection.TopDown;
             this.flowLayoutPanel2.Location = new System.Drawing.Point(3, 3);
@@ -356,6 +358,18 @@
             this.progressLabel.TabIndex = 4;
             this.progressLabel.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
             // 
+            // captureButton
+            // 
+            this.captureButton.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(238)));
+            this.captureButton.Location = new System.Drawing.Point(3, 367);
+            this.captureButton.Name = "captureButton";
+            this.captureButton.Size = new System.Drawing.Size(150, 21);
+            this.captureButton.TabIndex = 5;
+            this.captureButton.Text = "Capture";
+            this.captureButton.TextAlign = System.Drawing.ContentAlignment.TopCenter;
+            this.captureButton.UseVisualStyleBackColor = true;
+            this.captureButton.Click += new System.EventHandler(this.captureButton_Click);
+            // 
             // flowLayoutPanel5
             // 
             this.flowLayoutPanel5.AutoSize = true;
@@ -388,7 +402,7 @@
             this.openFileDialog1.FileName = "openFileDialog1";
             this.openFileDialog1.Filter = "Text files|*.txt|All files|*.*";
             // 
-            // Form1
+            // PlanningForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(9F, 18F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
@@ -396,7 +410,7 @@
             this.Controls.Add(this.tableLayoutPanel1);
             this.Font = new System.Drawing.Font("Microsoft Sans Serif", 11.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(238)));
             this.Margin = new System.Windows.Forms.Padding(4);
-            this.Name = "Form1";
+            this.Name = "PlanningForm";
             this.Text = "Form1";
             this.tableLayoutPanel1.ResumeLayout(false);
             this.tableLayoutPanel1.PerformLayout();
@@ -449,6 +463,7 @@
         private System.Windows.Forms.TextBox goalYBox;
         private System.Windows.Forms.CheckBox curvedCheckBox;
         private System.Windows.Forms.Label progressLabel;
+        private System.Windows.Forms.Button captureButton;
     }
 }
 
