@@ -98,6 +98,7 @@ namespace SMTMotionPlanning
         private double getTopLeftDistance(Coordinate start, Coordinate end)
         {
             List<RealCoordinate> intersects = new List<RealCoordinate>();
+            // Segment line equation:
             // x = x0 + sx*t
             // y = y0 + sy*t
             int sx = end.x - start.x;
@@ -105,8 +106,8 @@ namespace SMTMotionPlanning
             // 1. Check if path segment intersects with the bottom border of the sector
             // Bottom sector line border equation: y = 1/3 * mapHeight
             // Border points: [0,1/3*mapHeight],[1/3*mapWidth,1/3*mapHeight]
-            double y0 = mapHeight / 3;
-            double vx = mapWidth / 3;
+            double y0 = mapHeight / 3.0;
+            double vx = mapWidth / 3.0;
             double t = (double)(y0 - start.y) / (double)sy;
             double s = (start.x + sx * t) / vx;
             if (t <= 1 && t >= 0 && s <= 1 && s >= 0)
@@ -119,8 +120,8 @@ namespace SMTMotionPlanning
             // 2. Check if path segment intersects right border of the sector 
             // Right sector line border equation: x = 1/3 * mapWidth
             // Border points: [1/3*mapWidth,0],[1/3*mapWidth,1/3*mapHeight]
-            double x0 = mapWidth / 3;
-            double vy = mapHeight / 3;
+            double x0 = mapWidth / 3.0;
+            double vy = mapHeight / 3.0;
             t = (double)(x0 - start.x) / (double)sx;
             s = (start.y + sy * t) / vy;
             if (t <= 1 && t >= 0 && s <= 1 && s >= 0)
@@ -140,19 +141,19 @@ namespace SMTMotionPlanning
             // b) end point is inside the sector
             if (intersects.Count == 1)
             {
-                if (start.x >= 0 && start.x < mapWidth / 3)
-                    if (start.y >= 0 && start.y < mapHeight / 3)
+                if (start.x >= 0 && start.x < mapWidth / 3.0)
+                    if (start.y >= 0 && start.y < mapHeight / 3.0)
                         return RealCoordinate.getDistanceBetweenCoordinates(intersects[0], new RealCoordinate(start.x, start.y));
-                if (end.x >= 0 && end.x < mapWidth / 3)
-                    if (end.y >= 0 && end.y < mapHeight / 3)
+                if (end.x >= 0 && end.x < mapWidth / 3.0)
+                    if (end.y >= 0 && end.y < mapHeight / 3.0)
                         return RealCoordinate.getDistanceBetweenCoordinates(intersects[0], new RealCoordinate(end.x, end.y));
             }
             // If no intersecting points were found, segment can still be fully inside the sector without
             // intersecting its borders
             if (intersects.Count == 0)
             {
-                if (start.x >= 0 && start.x < mapWidth / 3 && start.y >= 0 && start.y < mapHeight / 3)
-                    if (end.x >= 0 && end.x < mapWidth / 3 && end.y >= 0 && end.y < mapHeight / 3)
+                if (start.x >= 0 && start.x < mapWidth / 3.0 && start.y >= 0 && start.y < mapHeight / 3.0)
+                    if (end.x >= 0 && end.x < mapWidth / 3.0 && end.y >= 0 && end.y < mapHeight / 3.0)
                         return RealCoordinate.getDistanceBetweenCoordinates(new RealCoordinate(start.x, start.y), new RealCoordinate(end.x, end.y));
             }
             return 0;
@@ -165,9 +166,9 @@ namespace SMTMotionPlanning
             int sy = end.y - start.y;
             // 1. Check if segments intersects with the left border of the sector
             // Left sector line border equation: x = 1/3 * mapWidth
-            // Border points: [1/3*mapWidth,0],[2/3*mapWidth,1/3*mapHeight]
-            double x0 = mapWidth / 3;
-            double vy = mapHeight / 3;
+            // Border points: [1/3*mapWidth,0],[1/3*mapWidth,1/3*mapHeight]
+            double x0 = mapWidth / 3.0;
+            double vy = mapHeight / 3.0;
             double t = (double)(x0 - start.x) / (double)sx;
             double s = (start.y + sy * t) / vy;
             if (t <= 1 && t >= 0 && s <= 1 && s >= 0)
@@ -180,9 +181,9 @@ namespace SMTMotionPlanning
             // 2. Check if segments intersect with the bottom border of the sector
             // Bottom sector line border equation: y = 1/3 * mapHeight
             // Border points: [1/3*mapWidth,1/3*mapHeight],[2/3*mapWidth,1/3*mapHeight]
-            x0 = 1 / 3 * mapWidth;
-            double y0 = 1 / 3 * mapHeight;
-            double vx = 1 / 3 * mapWidth;
+            x0 = 1.0 / 3.0 * mapWidth;
+            double y0 = 1.0 / 3.0 * mapHeight;
+            double vx = 1.0 / 3.0 * mapWidth;
             t = (double)(y0 - start.y) / (double)sy;
             s = (start.x + sx * t - x0) / vx;
             if (t <= 1 && t >= 0 && s <= 1 && s >= 0)
@@ -195,8 +196,8 @@ namespace SMTMotionPlanning
             // 3. Check if segments intersect with the right border of the sector
             // Right sector line border equation: x = 2/3 * mapHeight
             // Border points: [2/3*mapWidth,0],[2/3*mapWidth,1/3*mapHeight]
-            x0 = 2 / 3 * mapWidth;
-            vy = 1 / 3 * mapHeight;
+            x0 = 2.0 / 3.0 * mapWidth;
+            vy = 1.0 / 3.0 * mapHeight;
             t = (double)(x0 - start.x) / (double)sx;
             s = (start.y + sy * t) / vy;
             if (t <= 1 && t >= 0 && s <= 1 && s >= 0)
@@ -216,19 +217,19 @@ namespace SMTMotionPlanning
             // b) end point is inside the sector
             if (intersects.Count == 1)
             {
-                if (start.x >= mapWidth / 3 && start.x < 2 * mapWidth / 3)
-                    if (start.y >= 0 && start.y < mapHeight / 3)
+                if (start.x >= mapWidth / 3.0 && start.x < 2.0 * mapWidth / 3.0)
+                    if (start.y >= 0 && start.y < mapHeight / 3.0)
                         return RealCoordinate.getDistanceBetweenCoordinates(intersects[0], new RealCoordinate(start.x, start.y));
-                if (end.x >= mapWidth / 3 && end.x < 2 * mapWidth / 3)
-                    if (end.y >= 0 && end.y < mapHeight / 3)
+                if (end.x >= mapWidth / 3.0 && end.x < 2.0 * mapWidth / 3.0)
+                    if (end.y >= 0 && end.y < mapHeight / 3.0)
                         return RealCoordinate.getDistanceBetweenCoordinates(intersects[0], new RealCoordinate(end.x, end.y));
             }
             // If no intersecting points were found, segment can still be fully inside the sector without
             // intersecting its borders
             if (intersects.Count == 0)
             {
-                if (start.x >= mapWidth / 3 && start.x < 2 * mapWidth / 3 && start.y >= 0 && start.y < mapHeight / 3)
-                    if (end.x >= mapWidth / 3 && end.x < 2 * mapWidth / 3 && end.y >= 0 && end.y < mapHeight / 3)
+                if (start.x >= mapWidth / 3.0 && start.x < 2.0 * mapWidth / 3.0 && start.y >= 0 && start.y < mapHeight / 3.0)
+                    if (end.x >= mapWidth / 3.0 && end.x < 2.0 * mapWidth / 3.0 && end.y >= 0 && end.y < mapHeight / 3.0)
                         return RealCoordinate.getDistanceBetweenCoordinates(new RealCoordinate(start.x, start.y), new RealCoordinate(end.x, end.y));
             }
             return 0;
@@ -242,8 +243,8 @@ namespace SMTMotionPlanning
             // 1. Check if segments intersect with the left border of the sector
             // Right sector line border equation: x = 2/3 * mapHeight
             // Border points: [2/3*mapWidth,0],[2/3*mapWidth,1/3*mapHeight]
-            double x0 = 2 / 3 * mapWidth;
-            double vy = 1 / 3 * mapHeight;
+            double x0 = 2.0 / 3.0 * mapWidth;
+            double vy = 1.0 / 3.0 * mapHeight;
             double t = (double)(x0 - start.x) / (double)sx;
             double s = (start.y + sy * t) / vy;
             if (t <= 1 && t >= 0 && s <= 1 && s >= 0)
@@ -256,9 +257,9 @@ namespace SMTMotionPlanning
             // 2. Check if segments intersect with the bottom border of the sector
             // Bottom sector line border equation: y = 1/3 * mapHeight
             // Border points: [2/3*mapWidth,1/3*mapHeight],[mapWidth,1/3*mapHeight]
-            x0 = 2 / 3 * mapWidth;
-            double y0 = 1 / 3 * mapHeight;
-            double vx = 1 / 3 * mapWidth;
+            x0 = 2.0 / 3.0 * mapWidth;
+            double y0 = 1.0 / 3.0 * mapHeight;
+            double vx = 1.0 / 3.0 * mapWidth;
             t = (double)(y0 - start.y) / (double)sy;
             s = (start.x + sx * t - x0) / vx;
             if (t <= 1 && t >= 0 && s <= 1 && s >= 0)
@@ -278,19 +279,19 @@ namespace SMTMotionPlanning
             // b) end point is inside the sector
             if (intersects.Count == 1)
             {
-                if (start.x >= 2 * mapWidth / 3 && start.x <= mapWidth)
-                    if (start.y >= 0 && start.y < mapHeight / 3) 
+                if (start.x >= 2.0 * mapWidth / 3.0 && start.x <= mapWidth)
+                    if (start.y >= 0 && start.y < mapHeight / 3.0) 
                         return RealCoordinate.getDistanceBetweenCoordinates(intersects[0], new RealCoordinate(start.x, start.y));
-                if (end.x >= 2 * mapWidth / 3 && end.x <= mapWidth) 
-                    if (end.y >= 0 && end.y < mapHeight / 3)
+                if (end.x >= 2.0 * mapWidth / 3.0 && end.x <= mapWidth) 
+                    if (end.y >= 0 && end.y < mapHeight / 3.0)
                         return RealCoordinate.getDistanceBetweenCoordinates(intersects[0], new RealCoordinate(end.x, end.y));
             }
             // If no intersecting points were found, segment can still be fully inside the sector without
             // intersecting its borders
             if (intersects.Count == 0)
             {
-                if (start.x >= 2 * mapWidth / 3 && start.x <= mapWidth && start.y >= 0 && start.y < mapHeight / 3)
-                    if (end.x >= 2 * mapWidth / 3 && end.x <= mapWidth && end.y >= 0 && end.y < mapHeight / 3)
+                if (start.x >= 2.0 * mapWidth / 3.0 && start.x <= mapWidth && start.y >= 0 && start.y < mapHeight / 3.0)
+                    if (end.x >= 2.0 * mapWidth / 3.0 && end.x <= mapWidth && end.y >= 0 && end.y < mapHeight / 3.0)
                         return RealCoordinate.getDistanceBetweenCoordinates(new RealCoordinate(start.x, start.y), new RealCoordinate(end.x, end.y));
             }
             return 0;
@@ -302,10 +303,10 @@ namespace SMTMotionPlanning
             int sx = end.x - start.x;
             int sy = end.y - start.y;
             // 1. Check if path segment intersects with the top border of the sector
-            // Bottom sector line border equation: y = 1/3 * mapHeight
+            // Top sector line border equation: y = 1/3 * mapHeight
             // Border points: [0,1/3*mapHeight],[1/3*mapWidth,1/3*mapHeight]
-            double y0 = mapHeight / 3;
-            double vx = mapWidth / 3;
+            double y0 = mapHeight / 3.0;
+            double vx = mapWidth / 3.0;
             double t = (double)(y0 - start.y) / (double)sy;
             double s = (start.x + sx * t) / vx;
             if (t <= 1 && t >= 0 && s <= 1 && s >= 0)
@@ -318,9 +319,9 @@ namespace SMTMotionPlanning
             // 2. Check if path segment intersects right border of the sector 
             // Right sector line border equation: x = 1/3 * mapWidth
             // Border points: [1/3*mapWidth,1/3*mapHeight],[1/3*mapWidth,2/3*mapHeight]
-            double x0 = mapWidth / 3;
-            y0 = mapHeight / 3;
-            double vy = mapHeight / 3;
+            double x0 = mapWidth / 3.0;
+            y0 = mapHeight / 3.0;
+            double vy = mapHeight / 3.0;
             t = (double)(x0 - start.x) / (double)sx;
             s = (start.y + sy * t - y0) / vy;
             if (t <= 1 && t >= 0 && s <= 1 && s >= 0)
@@ -331,10 +332,10 @@ namespace SMTMotionPlanning
                 intersects.Add(intersect);
             }
             // 3. Check if path segment intersects with the bottom border of the sector
-            // Bottom sector line border equation: y = 1/3 * mapHeight
+            // Bottom sector line border equation: y = 2/3 * mapHeight
             // Border points: [0,2/3*mapHeight],[1/3*mapWidth,2/3*mapHeight]
-            y0 = 2 * mapHeight / 3;
-            vx = mapWidth / 3;
+            y0 = 2.0 * mapHeight / 3.0;
+            vx = mapWidth / 3.0;
             t = (double)(y0 - start.y) / (double)sy;
             s = (start.x + sx * t) / vx;
             if (t <= 1 && t >= 0 && s <= 1 && s >= 0)
@@ -354,19 +355,19 @@ namespace SMTMotionPlanning
             // b) end point is inside the sector
             if (intersects.Count == 1)
             {
-                if (start.x >= 0 && start.x < mapWidth / 3)
-                    if (start.y >= mapHeight / 3 && start.y < 2 * mapHeight / 3) 
+                if (start.x >= 0 && start.x < mapWidth / 3.0)
+                    if (start.y >= mapHeight / 3.0 && start.y < 2.0 * mapHeight / 3.0) 
                         return RealCoordinate.getDistanceBetweenCoordinates(intersects[0], new RealCoordinate(start.x, start.y));
-                if (end.x >= 0 && end.x < mapWidth / 3)
-                    if (end.y >= mapHeight / 3 && end.y < 2 * mapHeight / 3) 
+                if (end.x >= 0 && end.x < mapWidth / 3.0)
+                    if (end.y >= mapHeight / 3.0 && end.y < 2.0 * mapHeight / 3.0) 
                         return RealCoordinate.getDistanceBetweenCoordinates(intersects[0], new RealCoordinate(end.x, end.y));
             }
             // If no intersecting points were found, segment can still be fully inside the sector without
             // intersecting its borders
             if (intersects.Count == 0)
             {
-                if (start.x >= 0 && start.x < mapWidth / 3 && start.y >= mapHeight / 3 && start.y < 2 * mapHeight / 3)
-                    if (end.x >= 0 && end.x < mapWidth / 3 && end.y >= mapHeight / 3 && end.y < 2 * mapHeight / 3)
+                if (start.x >= 0 && start.x < mapWidth / 3.0 && start.y >= mapHeight / 3.0 && start.y < 2.0 * mapHeight / 3.0)
+                    if (end.x >= 0 && end.x < mapWidth / 3.0 && end.y >= mapHeight / 3.0 && end.y < 2.0 * mapHeight / 3.0)
                         return RealCoordinate.getDistanceBetweenCoordinates(new RealCoordinate(start.x, start.y), new RealCoordinate(end.x, end.y));
             }
             return 0;
@@ -380,9 +381,9 @@ namespace SMTMotionPlanning
             // 1. Check if path segment intersects with the left border of the sector
             // Left sector line border equation: x = 1/3 * mapWidth
             // Border points: [1/3*mapWidth,1/3*mapHeight],[1/3*mapWidth,2/3*mapHeight]
-            double x0 = mapWidth / 3;
-            double y0 = mapHeight / 3;
-            double vy = mapHeight / 3;
+            double x0 = mapWidth / 3.0;
+            double y0 = mapHeight / 3.0;
+            double vy = mapHeight / 3.0;
             double t = (double)(x0 - start.x) / (double)sx;
             double s = (start.y + sy * t - y0) / vy;
             if (t <= 1 && t >= 0 && s <= 1 && s >= 0)
@@ -395,9 +396,9 @@ namespace SMTMotionPlanning
             // 2. Check if path segment intersects with the top border of the sector
             // Top sector line border equation: y = 1/3 * mapWidth
             // Border points: [1/3*mapWidth,1/3*mapHeight],[2/3*mapWidth,1/3*mapHeight]
-            x0 = 1 / 3 * mapWidth;
-            y0 = 1 / 3 * mapHeight;
-            double vx = 1 / 3 * mapWidth;
+            x0 = 1.0 / 3.0 * mapWidth;
+            y0 = 1.0 / 3.0 * mapHeight;
+            double vx = 1.0 / 3.0 * mapWidth;
             t = (double)(y0 - start.y) / (double)sy;
             s = (start.x + sx * t - x0) / vx;
             if (t <= 1 && t >= 0 && s <= 1 && s >= 0)
@@ -410,9 +411,9 @@ namespace SMTMotionPlanning
             // 3. Check if path segment intersects with the bottom border of the sector
             // Bottom sector line border equation: y = 2/3 * mapWidth
             // Border points: [1/3*mapWidth,2/3*mapHeight],[2/3*mapWidth,2/3*mapHeight]
-            x0 = 1 / 3 * mapWidth;
-            y0 = 2 / 3 * mapHeight;
-            vx = 1 / 3 * mapWidth;
+            x0 = 1.0 / 3.0 * mapWidth;
+            y0 = 2.0 / 3.0 * mapHeight;
+            vx = 1.0 / 3.0 * mapWidth;
             t = (double)(y0 - start.y) / (double)sy;
             s = (start.x + sx * t - x0) / vx;
             if (t <= 1 && t >= 0 && s <= 1 && s >= 0)
@@ -425,9 +426,9 @@ namespace SMTMotionPlanning
             // 4. Check if path segment intersects with the right border of the sector
             // Right sector line border equation: x = 2/3 * mapHeight
             // Border points: [2/3*mapWidth,1/3*mapHeight],[2/3*mapWidth,2/3*mapHeight]
-            x0 = 2 * mapWidth / 3;
-            y0 = mapHeight / 3;
-            vy = mapHeight / 3;
+            x0 = 2.0 * mapWidth / 3.0;
+            y0 = mapHeight / 3.0;
+            vy = mapHeight / 3.0;
             t = (double)(x0 - start.x) / (double)sx;
             s = (start.y + sy * t - y0) / vy;
             if (t <= 1 && t >= 0 && s <= 1 && s >= 0)
@@ -447,19 +448,19 @@ namespace SMTMotionPlanning
             // b) end point is inside the sector
             if (intersects.Count == 1)
             {
-                if (start.x >= mapWidth / 3 && start.x < 2 * mapWidth / 3)
-                    if (start.y >= mapHeight / 3 && start.y < 2 * mapHeight / 3) 
+                if (start.x >= mapWidth / 3.0 && start.x < 2.0 * mapWidth / 3.0)
+                    if (start.y >= mapHeight / 3.0 && start.y < 2.0 * mapHeight / 3.0) 
                         return RealCoordinate.getDistanceBetweenCoordinates(intersects[0], new RealCoordinate(start.x, start.y));
-                if (end.x >= mapWidth / 3 && end.x < 2 * mapWidth / 3)
-                    if (end.y >= mapHeight / 3 && end.y < 2 * mapHeight / 3) 
+                if (end.x >= mapWidth / 3.0 && end.x < 2.0 * mapWidth / 3.0)
+                    if (end.y >= mapHeight / 3.0 && end.y < 2.0 * mapHeight / 3.0) 
                         return RealCoordinate.getDistanceBetweenCoordinates(intersects[0], new RealCoordinate(end.x, end.y));
             }
             // If no intersecting points were found, segment can still be fully inside the sector without
             // intersecting its borders
             if (intersects.Count == 0)
             {
-                if (start.x >= mapWidth / 3 && start.x < 2 * mapWidth / 3 && start.y >= mapHeight / 3 && start.y < 2 * mapHeight / 3)
-                    if (end.x >= mapWidth / 3 && end.x < 2 * mapWidth / 3 && end.y >= mapHeight / 3 && end.y < 2 * mapHeight / 3)
+                if (start.x >= mapWidth / 3.0 && start.x < 2.0 * mapWidth / 3.0 && start.y >= mapHeight / 3.0 && start.y < 2.0 * mapHeight / 3.0)
+                    if (end.x >= mapWidth / 3.0 && end.x < 2.0 * mapWidth / 3.0 && end.y >= mapHeight / 3.0 && end.y < 2.0 * mapHeight / 3.0)
                         return RealCoordinate.getDistanceBetweenCoordinates(new RealCoordinate(start.x, start.y), new RealCoordinate(end.x, end.y));
             }
             return 0;
@@ -473,9 +474,9 @@ namespace SMTMotionPlanning
             // 1. Check if path segment intersects with the left border of the sector
             // Left sector line border equation: x = 2/3 * mapWidth
             // Border points: [2/3*mapWidth,1/3*mapHeight],[2/3*mapWidth,2/3*mapHeight]
-            double x0 = 2 * mapWidth / 3;
-            double y0 = mapHeight / 3;
-            double vy = mapHeight / 3;
+            double x0 = 2.0 * mapWidth / 3.0;
+            double y0 = mapHeight / 3.0;
+            double vy = mapHeight / 3.0;
             double t = (double)(x0 - start.x) / (double)sx;
             double s = (start.y + sy * t - y0) / vy;
             if (t <= 1 && t >= 0 && s <= 1 && s >= 0)
@@ -488,9 +489,9 @@ namespace SMTMotionPlanning
             // 2. Check if the path segment intersects with the top border of the sector
             // Top sector line border equation: y = 1/3 * mapHeight
             // Border points: [2/3*mapWidth,1/3*mapHeight],[mapWidth,1/3*mapHeight]
-            x0 = 2 / 3 * mapWidth;
-            y0 = 1 / 3 * mapHeight;
-            double vx = 1 / 3 * mapWidth;
+            x0 = 2.0 / 3.0 * mapWidth;
+            y0 = 1.0 / 3.0 * mapHeight;
+            double vx = 1.0 / 3.0 * mapWidth;
             t = (double)(y0 - start.y) / (double)sy;
             s = (start.x + sx * t - x0) / vx;
             if (t <= 1 && t >= 0 && s <= 1 && s >= 0)
@@ -503,9 +504,9 @@ namespace SMTMotionPlanning
             // 3. Check if the path segment intersects with the bottom border of the sector
             // Bottom sector line border equation: y = 2/3 * mapHeight
             // Border points: [2/3*mapWidth,2/3*mapHeight],[mapWidth,2/3*mapHeight]
-            x0 = 2 / 3 * mapWidth;
-            y0 = 2 / 3 * mapHeight;
-            vx = 1 / 3 * mapWidth;
+            x0 = 2.0 / 3.0 * mapWidth;
+            y0 = 2.0 / 3.0 * mapHeight;
+            vx = 1.0 / 3.0 * mapWidth;
             t = (double)(y0 - start.y) / (double)sy;
             s = (start.x + sx * t - x0) / vx;
             if (t <= 1 && t >= 0 && s <= 1 && s >= 0)
@@ -525,19 +526,19 @@ namespace SMTMotionPlanning
             // b) end point is inside the sector
             if (intersects.Count == 1)
             {
-                if (start.x >= 2 * mapWidth / 3 && start.x <= mapWidth) 
-                    if (start.y >= mapHeight / 3 && start.y < 2 * mapHeight / 3)
+                if (start.x >= 2.0 * mapWidth / 3.0 && start.x <= mapWidth) 
+                    if (start.y >= mapHeight / 3.0 && start.y < 2.0 * mapHeight / 3.0)
                         return RealCoordinate.getDistanceBetweenCoordinates(intersects[0], new RealCoordinate(start.x, start.y));
-                if (end.x >= 2 * mapWidth / 3 && end.x <= mapWidth) 
-                    if (end.y >= mapHeight / 3 && end.y < 2 * mapHeight / 3) 
+                if (end.x >= 2.0 * mapWidth / 3.0 && end.x <= mapWidth) 
+                    if (end.y >= mapHeight / 3.0 && end.y < 2.0 * mapHeight / 3.0) 
                 return RealCoordinate.getDistanceBetweenCoordinates(intersects[0], new RealCoordinate(end.x, end.y));
             }
             // If no intersecting points were found, segment can still be fully inside the sector without
             // intersecting its borders
             if (intersects.Count == 0)
             {
-                if (start.x >= 2 * mapWidth / 3 && start.x <= mapWidth && start.y >= mapHeight / 3 && start.y < 2 * mapHeight / 3)
-                    if (end.x >= 2 * mapWidth / 3 && end.x <= mapWidth && end.y >= mapHeight / 3 && end.y < 2 * mapHeight / 3)
+                if (start.x >= 2.0 * mapWidth / 3.0 && start.x <= mapWidth && start.y >= mapHeight / 3.0 && start.y < 2.0 * mapHeight / 3.0)
+                    if (end.x >= 2.0 * mapWidth / 3.0 && end.x <= mapWidth && end.y >= mapHeight / 3.0 && end.y < 2.0 * mapHeight / 3.0)
                         return RealCoordinate.getDistanceBetweenCoordinates(new RealCoordinate(start.x, start.y), new RealCoordinate(end.x, end.y));
             }
             return 0;
@@ -551,8 +552,8 @@ namespace SMTMotionPlanning
             // 1. Check if path segment intersects with the top border of the sector
             // Top sector line border equation: y = 1/3 * mapHeight
             // Border points: [0,2/3*mapHeight],[1/3*mapWidth,2/3*mapHeight]
-            double y0 = 2 * mapHeight / 3;
-            double vx = mapWidth / 3;
+            double y0 = 2.0 * mapHeight / 3.0;
+            double vx = mapWidth / 3.0;
             double t = (double)(y0 - start.y) / (double)sy;
             double s = (start.x + sx * t) / vx;
             if (t <= 1 && t >= 0 && s <= 1 && s >= 0)
@@ -565,9 +566,9 @@ namespace SMTMotionPlanning
             // 2. Check if path segment intersects with the right border of the sector
             // Right sector line border equation: x = 1/3 * mapHeight
             // Border points: [1/3*mapWidth,2/3*mapHeight],[1/3*mapWidth,mapHeight]
-            double x0 = mapWidth / 3;
-            y0 = 2 * mapHeight / 3;
-            double vy = mapHeight / 3;
+            double x0 = mapWidth / 3.0;
+            y0 = 2.0 * mapHeight / 3.0;
+            double vy = mapHeight / 3.0;
             t = (double)(x0 - start.x) / (double)sx;
             s = (start.y + sy * t - y0) / vy;
             if (t <= 1 && t >= 0 && s <= 1 && s >= 0)
@@ -587,19 +588,19 @@ namespace SMTMotionPlanning
             // b) end point is inside the sector
             if (intersects.Count == 1)
             {
-                if (start.x >= 0 && start.x < mapWidth / 3)
-                    if (start.y >= 2 * mapHeight / 3 && start.y <= mapHeight) 
+                if (start.x >= 0 && start.x < mapWidth / 3.0)
+                    if (start.y >= 2.0 * mapHeight / 3.0 && start.y <= mapHeight) 
                         return RealCoordinate.getDistanceBetweenCoordinates(intersects[0], new RealCoordinate(start.x, start.y));
                 if (end.x >= 0 && end.x < mapWidth / 3)
-                    if (end.y >= 2 * mapHeight / 3 && end.y <= mapHeight) 
+                    if (end.y >= 2.0 * mapHeight / 3.0 && end.y <= mapHeight) 
                         return RealCoordinate.getDistanceBetweenCoordinates(intersects[0], new RealCoordinate(end.x, end.y));
             }
             // If no intersecting points were found, segment can still be fully inside the sector without
             // intersecting its borders
             if (intersects.Count == 0)
             {
-                if (start.x >= 0 && start.x < mapWidth / 3 && start.y >= 2 * mapHeight / 3 && start.y <= mapHeight)
-                    if (end.x >= 0 && end.x < mapWidth / 3 && end.y >= 2 * mapHeight / 3 && end.y <= mapHeight)
+                if (start.x >= 0 && start.x < mapWidth / 3.0 && start.y >= 2.0 * mapHeight / 3.0 && start.y <= mapHeight)
+                    if (end.x >= 0 && end.x < mapWidth / 3.0 && end.y >= 2.0 * mapHeight / 3.0 && end.y <= mapHeight)
                         return RealCoordinate.getDistanceBetweenCoordinates(new RealCoordinate(start.x, start.y), new RealCoordinate(end.x, end.y));
             }
             return 0;
@@ -611,11 +612,11 @@ namespace SMTMotionPlanning
             int sx = end.x - start.x;
             int sy = end.y - start.y;
             // 1. Check if path segment intersects with the left border of the sector
-            // Left sector line border equation: x = 1/3 * mapHeight
+            // Left sector line border equation: x = 1/3 * mapWidth
             // Border points: [1/3*mapWidth,2/3*mapHeight],[1/3*mapWidth,mapHeight]
-            double x0 = mapWidth / 3;
-            double y0 = 2 * mapHeight / 3;
-            double vy = mapHeight / 3;
+            double x0 = mapWidth / 3.0;
+            double y0 = 2.0 * mapHeight / 3.0;
+            double vy = mapHeight / 3.0;
             double t = (double)(x0 - start.x) / (double)sx;
             double s = (start.y + sy * t - y0) / vy;
             if (t <= 1 && t >= 0 && s <= 1 && s >= 0)
@@ -626,11 +627,11 @@ namespace SMTMotionPlanning
                 intersects.Add(intersect);
             }
             // 2. Check if path segment intersects with the top border of the sector
-            // Top sector line border equation: y = 2/3 * mapWidth
+            // Top sector line border equation: y = 2/3 * mapHeight
             // Border points: [1/3*mapWidth,2/3*mapHeight],[2/3*mapWidth,2/3*mapHeight]
-            x0 = 1 / 3 * mapWidth;
-            y0 = 2 / 3 * mapHeight;
-            double vx = 1 / 3 * mapWidth;
+            x0 = 1.0 / 3.0 * mapWidth;
+            y0 = 2.0 / 3.0 * mapHeight;
+            double vx = 1.0 / 3.0 * mapWidth;
             t = (double)(y0 - start.y) / (double)sy;
             s = (start.x + sx * t - x0) / vx;
             if (t <= 1 && t >= 0 && s <= 1 && s >= 0)
@@ -643,9 +644,9 @@ namespace SMTMotionPlanning
             // 3. Check if path segment intersects with the right border of the sector
             // Right sector line border equation: x = 2/3 * mapHeight
             // Border points: [2/3*mapWidth,2/3*mapHeight],[2/3*mapWidth,mapHeight]
-            x0 = 2 * mapWidth / 3;
-            y0 = 2 * mapHeight / 3;
-            vy = mapHeight / 3;
+            x0 = 2.0 * mapWidth / 3.0;
+            y0 = 2.0 * mapHeight / 3.0;
+            vy = mapHeight / 3.0;
             t = (double)(x0 - start.x) / (double)sx;
             s = (start.y + sy * t - y0) / vy;
             if (t <= 1 && t >= 0 && s <= 1 && s >= 0)
@@ -665,19 +666,19 @@ namespace SMTMotionPlanning
             // b) end point is inside the sector
             if (intersects.Count == 1)
             {
-                if (start.x >= mapWidth / 3 && start.x < 2 * mapWidth / 3) 
-                    if (start.y >= 2 * mapHeight / 3 && start.y <= mapHeight)
+                if (start.x >= mapWidth / 3.0 && start.x < 2.0 * mapWidth / 3.0) 
+                    if (start.y >= 2.0 * mapHeight / 3.0 && start.y <= mapHeight)
                         return RealCoordinate.getDistanceBetweenCoordinates(intersects[0], new RealCoordinate(start.x, start.y));
-                if (end.x >= mapWidth / 3 && end.x < 2 * mapWidth / 3) 
-                    if (end.y >= 2 * mapHeight / 3 && end.y <= mapHeight)
+                if (end.x >= mapWidth / 3.0 && end.x < 2.0 * mapWidth / 3.0) 
+                    if (end.y >= 2.0 * mapHeight / 3.0 && end.y <= mapHeight)
                         return RealCoordinate.getDistanceBetweenCoordinates(intersects[0], new RealCoordinate(end.x, end.y));
             }
             // If no intersecting points were found, segment can still be fully inside the sector without
             // intersecting its borders
             if (intersects.Count == 0)
             {
-                if (start.x >= mapWidth / 3 && start.x < 2 * mapWidth / 3 && start.y >= 2 * mapHeight / 3 && start.y <= mapHeight)
-                    if (end.x >= mapWidth / 3 && end.x < 2 * mapWidth / 3 && end.y >= 2 * mapHeight / 3 && end.y <= mapHeight)
+                if (start.x >= mapWidth / 3.0 && start.x < 2.0 * mapWidth / 3.0 && start.y >= 2.0 * mapHeight / 3.0 && start.y <= mapHeight)
+                    if (end.x >= mapWidth / 3.0 && end.x < 2.0 * mapWidth / 3.0 && end.y >= 2.0 * mapHeight / 3.0 && end.y <= mapHeight)
                         return RealCoordinate.getDistanceBetweenCoordinates(new RealCoordinate(start.x, start.y), new RealCoordinate(end.x, end.y));
             }
             return 0;
@@ -689,11 +690,11 @@ namespace SMTMotionPlanning
             int sx = end.x - start.x;
             int sy = end.y - start.y;
             // 1. Check if path segment intersects with the left border of the sector
-            // Left sector line border equation: x = 2/3 * mapHeight
+            // Left sector line border equation: x = 2/3 * mapWidth
             // Border points: [2/3*mapWidth,2/3*mapHeight],[2/3*mapWidth,mapHeight]
-            double x0 = 2 * mapWidth / 3;
-            double y0 = 2 * mapHeight / 3;
-            double vy = mapHeight / 3;
+            double x0 = 2.0 * mapWidth / 3.0;
+            double y0 = 2.0 * mapHeight / 3.0;
+            double vy = mapHeight / 3.0;
             double t = (double)(x0 - start.x) / (double)sx;
             double s = (start.y + sy * t - y0) / vy;
             if (t <= 1 && t >= 0 && s <= 1 && s >= 0)
@@ -704,11 +705,11 @@ namespace SMTMotionPlanning
                 intersects.Add(intersect);
             }
             // 2. Check if path segment intersects with the top border of the sector
-            // Top sector line border equation: y = 2/3 * mapWidth
+            // Top sector line border equation: y = 2/3 * mapHeight
             // Border points: [2/3*mapWidth,2/3*mapHeight],[mapWidth,2/3*mapHeight]
-            x0 = 2 / 3 * mapWidth;
-            y0 = 2 / 3 * mapHeight;
-            double vx = 1 / 3 * mapWidth;
+            x0 = 2.0 / 3.0 * mapWidth;
+            y0 = 2.0 / 3.0 * mapHeight;
+            double vx = 1.0 / 3.0 * mapWidth;
             t = (double)(y0 - start.y) / (double)sy;
             s = (start.x + sx * t - x0) / vx;
             if (t <= 1 && t >= 0 && s <= 1 && s >= 0)
@@ -728,19 +729,19 @@ namespace SMTMotionPlanning
             // b) end point is inside the sector
             if (intersects.Count == 1)
             {
-                if (start.x >= 2 * mapWidth / 3 && start.x <= mapWidth) 
-                    if (start.y >= 2 * mapHeight / 3 && start.y <= mapHeight)
+                if (start.x >= 2.0 * mapWidth / 3.0 && start.x <= mapWidth) 
+                    if (start.y >= 2.0 * mapHeight / 3.0 && start.y <= mapHeight)
                         return RealCoordinate.getDistanceBetweenCoordinates(intersects[0], new RealCoordinate(start.x, start.y));
-                if (end.x >= 2 * mapWidth / 3 && end.x <= mapWidth) 
-                    if (end.y >= 2 * mapHeight / 3 && end.y <= mapHeight)
+                if (end.x >= 2.0 * mapWidth / 3.0 && end.x <= mapWidth) 
+                    if (end.y >= 2.0 * mapHeight / 3.0 && end.y <= mapHeight)
                         return RealCoordinate.getDistanceBetweenCoordinates(intersects[0], new RealCoordinate(end.x, end.y));
             }
             // If no intersecting points were found, segment can still be fully inside the sector without
             // intersecting its borders
             if (intersects.Count == 0)
             {
-                if (start.x >= 2 * mapWidth / 3 && start.x <= mapWidth && start.y >= 2 * mapHeight / 3 && start.y <= mapHeight)
-                    if (end.x >= 2 * mapWidth / 3 && end.x <= mapWidth && end.y >= 2 * mapHeight / 3 && end.y <= mapHeight)
+                if (start.x >= 2.0 * mapWidth / 3.0 && start.x <= mapWidth && start.y >= 2.0 * mapHeight / 3.0 && start.y <= mapHeight)
+                    if (end.x >= 2.0 * mapWidth / 3.0 && end.x <= mapWidth && end.y >= 2.0 * mapHeight / 3.0 && end.y <= mapHeight)
                         return RealCoordinate.getDistanceBetweenCoordinates(new RealCoordinate(start.x, start.y), new RealCoordinate(end.x, end.y));
             }
             return 0;

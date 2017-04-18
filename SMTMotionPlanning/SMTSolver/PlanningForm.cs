@@ -135,7 +135,15 @@ namespace SMTMotionPlanning
                 else
                 {
                     paths.Add(path.ToArray());
-                    optimisePath(pathSegments, distance);
+                    List<Coordinate> backupPath = clonePath(path);
+                    Thread optimiser = new Thread(() => optimisePath(pathSegments, distance));
+                    progressLabel.Text = "Optimising...";
+                    progressLabel.Invalidate();
+                    optimiser.Start();
+                    bool success = optimiser.Join(10000);
+                    if (success == false)
+                        path = backupPath;
+                    //optimisePath(pathSegments, distance);
                     PathCommandsGenerator generator = new PathCommandsGenerator(227, path, world.width, world.length);
                     generator.initialOrientation = 0.0;
                     generator.generateAndSaveCommands();
@@ -165,6 +173,7 @@ namespace SMTMotionPlanning
         private void closeButton_Click(object sender, EventArgs e)
         {
             Close();
+            Environment.Exit(0);
         }
 
         private void worldLoader_Click(object sender, EventArgs e)
@@ -536,8 +545,6 @@ namespace SMTMotionPlanning
         private void optimisePathLength(int pathSegments, List<Coordinate> path)
         {
             int pathLength = 0;
-            progressLabel.Text = "Optimising...";
-            progressLabel.Invalidate();
             for (int i = 0; i < path.Count - 1; i++)
             {
                 pathLength += Coordinate.getXDistanceBetweenCoordinates(path[i], path[i + 1]) +
@@ -639,5 +646,16 @@ namespace SMTMotionPlanning
             SegmentationForm segForm = new SegmentationForm();
             segForm.Show();
         }
+
+        private List<Coordinate> clonePath(List<Coordinate> path)
+        {
+            List<Coordinate> clone = new List<Coordinate>();
+            foreach (Coordinate coords in path)
+            {
+                clone.Add(new Coordinate(coords.x, coords.y));
+            }
+            return clone;
+        }
     }
 }
+
