@@ -19,7 +19,8 @@ namespace SMTMotionPlanning
             Image<Bgr, byte> image = frame.ToImage<Bgr, byte>();
             string[] segments = source.Split('.');
             string[] moreSegments = segments[3].Split('/');
-            image.Save("fromCamera" + moreSegments[0] + ".png");
+            string path = @"C:\Users\Robert\Documents\Visual Studio 2015\Projects\SMTMotionPlanning\SMTMotionPlanning\Pictures\";
+            image.Save(path + "fromCamera" + moreSegments[0] + ".png");
         }
 
         private Mat capture(string address)

@@ -18,13 +18,18 @@ namespace SMTMotionPlanning
         private int[] greenBounds;
         private int[] blueBounds;
         private int minimumCornerDistance;
+        private int originalImageHeight;
+        private int originalImageWidth;
 
-        public Segmentation(int[] redBounds, int[] greenBounds, int[] blueBounds, int minimumCornerDistance)
+        public Segmentation(int[] redBounds, int[] greenBounds, int[] blueBounds, int minimumCornerDistance,
+            int originalImageHeight, int originalImageWidth)
         {
             this.redBounds = redBounds;
             this.greenBounds = greenBounds;
             this.blueBounds = blueBounds;
             this.minimumCornerDistance = minimumCornerDistance;
+            this.originalImageHeight = originalImageHeight;
+            this.originalImageWidth = originalImageWidth;
         }
 
         public void ProcessImage(Bitmap bitmap)
@@ -61,7 +66,8 @@ namespace SMTMotionPlanning
             Pen trianglePen = new Pen(Color.Blue, 2);     // triangle
 
             // step 3.5 - prepare file to save obstacles
-            FileStream stream = new FileStream("obstacles.txt", FileMode.Create, FileAccess.Write);
+            string path = @"C:\Users\Robert\Documents\Visual Studio 2015\Projects\SMTMotionPlanning\SMTMotionPlanning\obstacleFiles\";
+            FileStream stream = new FileStream(path + "obstacles.txt", FileMode.Create, FileAccess.Write);
             StreamWriter writer = new StreamWriter(stream);
             for (int i = 0, n = blobs.Length; i < n; i++)
             {
@@ -115,6 +121,7 @@ namespace SMTMotionPlanning
             writer.Close();
             stream.Close();
             g.Dispose();
+            transformCoordinates();
         }
 
         // Convert list of AForge.NET's points to array of .NET points
@@ -371,5 +378,65 @@ namespace SMTMotionPlanning
             return matchingEdges / getDistanceBetweenTwoPoints(firstCorner, secondCorner);
         }
 
+        private void transformCoordinates()
+        {
+            // Map will be resized to original image resolution
+            string path = @"C:\Users\Robert\Documents\Visual Studio 2015\Projects\SMTMotionPlanning\SMTMotionPlanning\obstacleFiles\";
+            FileStream readStream = new FileStream(path + "obstacles.txt", FileMode.Open, FileAccess.Read);
+            StreamReader reader = new StreamReader(readStream);
+            FileStream writeStream = new FileStream(path + "new_obstacles.txt", FileMode.OpenOrCreate, FileAccess.Write);
+            StreamWriter writer = new StreamWriter(writeStream);
+            string line;
+            while ((line = reader.ReadLine()) != null)
+            {
+                string[] lineSegments = line.Split(' ');
+                if (lineSegments[0] == "r")
+                    writer.WriteLine(adjustRectangle(lineSegments));
+                if (lineSegments[0] == "e")
+                    writer.WriteLine(adjustEllipse(lineSegments));
+                if (lineSegments[0] == "s" || lineSegments[0] == "p")
+                    writer.WriteLine(adjustPointsShape(lineSegments));
+            }
+            writer.Close();
+            writeStream.Close();
+            reader.Close();
+            readStream.Close();
+        }
+
+        private string adjustRectangle(string[] rectangleSegments)
+        {
+            int adjustedX = int.Parse(rectangleSegments[1]) * originalImageWidth / 485;
+            int adjustedY = int.Parse(rectangleSegments[2]) * originalImageHeight / 281;
+            int adjustedWidth = int.Parse(rectangleSegments[3]) * originalImageWidth / 485;
+            int adjustedHeight = int.Parse(rectangleSegments[4]) * originalImageHeight / 281;
+            string adjustedRectangle = rectangleSegments[0] + " " + adjustedX + " " + adjustedY + " " +
+                adjustedWidth + " " + adjustedHeight;
+            return adjustedRectangle;
+        }
+
+        private string adjustEllipse(string[] ellipseSegments)
+        {
+            int adjustedX = int.Parse(ellipseSegments[1]) * originalImageWidth / 485;
+            int adjustedY = int.Parse(ellipseSegments[2]) * originalImageHeight / 281;
+            int adjustedWidth = int.Parse(ellipseSegments[3]) * originalImageWidth / 485;
+            int adjustedHeight = int.Parse(ellipseSegments[4]) * originalImageHeight / 281;
+            string adjustedEllipse = ellipseSegments[0] + " " + adjustedX + " " + adjustedY + " " +
+                adjustedWidth + " " + adjustedHeight;
+            return adjustedEllipse;
+        }
+        private string adjustPointsShape(string[] points)
+        {
+            List<System.Drawing.Point> pointsList = new List<System.Drawing.Point>();
+            for (int i = 1; i < points.Length; i = i + 2)
+            {
+                int x = int.Parse(points[i]) * originalImageWidth / 485;
+                int y = int.Parse(points[i + 1]) * originalImageHeight / 281;
+                pointsList.Add(new System.Drawing.Point(x, y));
+            }
+            string adjustedPoints = points[0];
+            foreach (System.Drawing.Point point in pointsList)
+                adjustedPoints = string.Concat(adjustedPoints, " ", point.X, " ", point.Y);
+            return adjustedPoints;
+        }
     }
 }

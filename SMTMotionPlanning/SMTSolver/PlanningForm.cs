@@ -40,6 +40,8 @@ namespace SMTMotionPlanning
             pathCalculated = false;
             runIssue = false;
             pathDrawn = false;
+            StartPosition = FormStartPosition.Manual;
+            Location = new Point(0, 0);
         }
 
         public PlanningForm(List<Obstacle> obstacles) : base()
@@ -143,7 +145,7 @@ namespace SMTMotionPlanning
                     bool success = optimiser.Join(10000);
                     if (success == false)
                         path = backupPath;
-                    //optimisePath(pathSegments, distance);
+                    // optimisePath(pathSegments, distance);
                     PathCommandsGenerator generator = new PathCommandsGenerator(227, path, world.width, world.length);
                     generator.initialOrientation = 0.0;
                     generator.generateAndSaveCommands();
@@ -183,6 +185,8 @@ namespace SMTMotionPlanning
             // w number
             // l number
             // h number(only if 3D)
+            openFileDialog1.Filter = "Text|*.txt|All|*.*";
+            openFileDialog1.InitialDirectory = @"C:\Users\Robert\Documents\Visual Studio 2015\Projects\SMTMotionPlanning\SMTMotionPlanning\worldFiles";
             if (openFileDialog1.ShowDialog() == DialogResult.OK)
             {
                 StreamReader sr = new StreamReader(openFileDialog1.FileName);
@@ -221,6 +225,8 @@ namespace SMTMotionPlanning
             // Expected format used for elliptical obstacles in file:
             // e sx sy width length
             obstacles = new List<Obstacle>();
+            openFileDialog1.Filter = "Text|*.txt|All|*.*";
+            openFileDialog1.InitialDirectory = @"C:\Users\Robert\Documents\Visual Studio 2015\Projects\SMTMotionPlanning\SMTMotionPlanning\obstacleFiles";
             if (openFileDialog1.ShowDialog() == DialogResult.OK)
             {
                 StreamReader sr = new StreamReader(openFileDialog1.FileName);
@@ -488,7 +494,7 @@ namespace SMTMotionPlanning
             // The actual [0,0] point is not going to be left-top corner of the form, but the left-top corner
             // of the canvas itself, leaving out parts of the form where the controls are
 
-            double relativeX = location.x + Math.Ceiling((double)(Width * 0.2558));
+            double relativeX = location.x + 160;
             int relativeY = location.y;
 
             return new Coordinate((int)relativeX, relativeY);
@@ -496,7 +502,7 @@ namespace SMTMotionPlanning
 
         private RealCoordinate calculateRelativeCanvasPosition(RealCoordinate location)
         {
-            double relativeX = location.x + Math.Ceiling((double)(Width * 0.2558));
+            double relativeX = location.x + 160;
             double relativeY = location.y;
 
             return new RealCoordinate(relativeX, relativeY);
@@ -504,10 +510,23 @@ namespace SMTMotionPlanning
 
         private void scaleForm()
         {
-            // Minimum Form size: 640 * 480
-            // Form designed rescaled, first column now has 25.58%
-            double newWidth = world.width * 1.375;
-            double newLength = world.length * 1.2;
+            // 16 is the fixed width of form borders
+            // 38 is the fixed height of form borders
+            double newWidth = world.width + 160 + 16;
+            double newLength = world.length + 45 + 38;
+
+            TableLayoutRowStyleCollection rowStyles;
+            TableLayoutColumnStyleCollection columnStyles;
+            columnStyles = tableLayoutPanel1.ColumnStyles;
+            rowStyles = tableLayoutPanel1.RowStyles;
+            columnStyles[0].SizeType = SizeType.Absolute;
+            columnStyles[0].Width = 160;
+            columnStyles[1].SizeType = SizeType.Absolute;
+            columnStyles[1].Width = world.width;
+            rowStyles[0].SizeType = SizeType.Absolute;
+            rowStyles[0].Height = world.length;
+            rowStyles[1].SizeType = SizeType.Absolute;
+            rowStyles[1].Height = 45;
 
             if (newWidth != Width || newWidth != Height)
             {

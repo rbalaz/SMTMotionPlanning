@@ -12,6 +12,8 @@ namespace SMTMotionPlanning
     public partial class SegmentationForm : Form
     {
         private int minimumCornerDistance;
+        private int originalImageHeight;
+        private int originalImageWidth;
         private Bitmap image;
         private Graphics tableLayoutGraphics;
         private int[] greenBounds;
@@ -29,6 +31,10 @@ namespace SMTMotionPlanning
             redBounds = new int[2];
             blueBounds = new int[2];
             segmentationExecuted = false;
+            originalImageWidth = 0;
+            originalImageHeight = 0;
+            StartPosition = FormStartPosition.Manual;
+            Location = new Point(Screen.PrimaryScreen.Bounds.Right / 4, 0);
         }
 
         private void executeButton_Click(object sender, EventArgs e)
@@ -45,7 +51,8 @@ namespace SMTMotionPlanning
             blueBounds[1] = blueUpperBar.Value;
             if (greenBounds[0] < greenBounds[1] && redBounds[0] < redBounds[1] && blueBounds[0] < blueBounds[1])
             {
-                Segmentation segmentation = new Segmentation(redBounds, greenBounds, blueBounds, minimumCornerDistance);
+                Segmentation segmentation = new Segmentation(redBounds, greenBounds, blueBounds, minimumCornerDistance,
+                    originalImageHeight, originalImageWidth);
                 //segmentation.ProcessImage(image);
                 Bitmap resizedImage = ResizeImage(image, 485, 281);
                 segmentation.ProcessImage(resizedImage);
@@ -63,9 +70,13 @@ namespace SMTMotionPlanning
         {
             // width: 485
             // height: 281
+            openFileDialog1.Filter = "Png Images(*.png)|*.png|Jpeg Images(*.jpg)|*.jpg|Bitmaps(*.bmp)|*.bmp";
+            openFileDialog1.InitialDirectory = @"C:\Users\Robert\Documents\Visual Studio 2015\Projects\SMTMotionPlanning\SMTMotionPlanning\Pictures";
             if (openFileDialog1.ShowDialog() == DialogResult.OK)
             {
                 image = new Bitmap(openFileDialog1.FileName);
+                originalImageHeight = image.Height;
+                originalImageWidth = image.Width;
                 Image resizedImage = ResizeImage(image, 485, 281);
                 Rectangle rect = new Rectangle(5, 5, 485, 281);
                 tableLayoutGraphics.DrawImage(resizedImage, rect);
@@ -141,10 +152,14 @@ namespace SMTMotionPlanning
         private void stitchButton_Click(object sender, EventArgs e)
         {
             Bitmap image1 = null, image2 = null;
+            openFileDialog1.Filter = "Png Images(*.png)|*.png|Jpeg Images(*.jpg)|*.jpg|Bitmaps(*.bmp)|*.bmp";
+            openFileDialog1.InitialDirectory = @"C:\Users\Robert\Documents\Visual Studio 2015\Projects\SMTMotionPlanning\SMTMotionPlanning\Pictures";
             if (openFileDialog1.ShowDialog() == DialogResult.OK)
             {
                 image1 = new Bitmap(openFileDialog1.FileName);
             }
+            openFileDialog2.Filter = "Png Images(*.png)|*.png|Jpeg Images(*.jpg)|*.jpg|Bitmaps(*.bmp)|*.bmp";
+            openFileDialog2.InitialDirectory = @"C:\Users\Robert\Documents\Visual Studio 2015\Projects\SMTMotionPlanning\SMTMotionPlanning\Pictures";
             if (openFileDialog2.ShowDialog() == DialogResult.OK)
             {
                 image2 = new Bitmap(openFileDialog2.FileName);
@@ -272,9 +287,10 @@ namespace SMTMotionPlanning
             // Map will be resized to 640x480 resolution, with top left corner being a red ball
             // and bottom right corner having coordinates [640,480]
             // Original picture is resized to 485x281 resolution
-            FileStream readStream = new FileStream("obstacles.txt", FileMode.Open, FileAccess.Read);
+            string path = @"C:\Users\Robert\Documents\Visual Studio 2015\Projects\SMTMotionPlanning\SMTMotionPlanning\obstacleFiles\";
+            FileStream readStream = new FileStream(path + "obstacles.txt", FileMode.Open, FileAccess.Read);
             StreamReader reader = new StreamReader(readStream);
-            FileStream writeStream = new FileStream("new_obstacles.txt", FileMode.OpenOrCreate, FileAccess.Write);
+            FileStream writeStream = new FileStream(path + "new_obstacles.txt", FileMode.OpenOrCreate, FileAccess.Write);
             StreamWriter writer = new StreamWriter(writeStream);
             string line;
             while ((line = reader.ReadLine()) != null)
