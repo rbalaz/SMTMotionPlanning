@@ -23,8 +23,21 @@ namespace SMTMotionPlanning
             this.mapWidth = mapWidth;
         }
 
+        private void rescalePathToOriginalDimensions()
+        {
+            List<Coordinate> rescaledPath = new List<Coordinate>();
+            foreach (Coordinate coord in path)
+            {
+                int newX = (int)(coord.x * 1280.0 / 800.0);
+                int newY = (int)(coord.y * 800.0 / 600.0);
+                rescaledPath.Add(new Coordinate(newX, newY));
+            }
+            path = rescaledPath;
+        }
+
         public void generateAndSaveCommands()
         {
+            rescalePathToOriginalDimensions();
             FileStream stream = new FileStream("commands.txt", FileMode.OpenOrCreate, FileAccess.Write);
             StreamWriter writer = new StreamWriter(stream);
             double currentOrientation = initialOrientation;
@@ -33,7 +46,11 @@ namespace SMTMotionPlanning
                 double orientationChange = changeOrientation(path[i], path[i + 1], currentOrientation);
                 writer.WriteLine("Rotate: " + orientationChange);
                 currentOrientation += orientationChange;
-                double length = calculateSegmentLength(path[i], path[i + 1]);
+                double length;
+                if (usedCameraId == 227)
+                    length = calculateSegmentLength227(path[i], path[i + 1]);
+                else
+                    length = calculateSegmentLength219(path[i], path[i + 1]);
                 writer.WriteLine("Move forward: " + length);
             }
             writer.Close();
@@ -73,7 +90,7 @@ namespace SMTMotionPlanning
 
         }
 
-        private double calculateSegmentLength(Coordinate start, Coordinate end)
+        private double calculateSegmentLength227(Coordinate start, Coordinate end)
         {
             /*           227
                 ----------------------
@@ -90,6 +107,28 @@ namespace SMTMotionPlanning
             distance += getMiddleMiddleDistance(start, end) * 0.25;
             distance += getMiddleRightDistance(start, end) * 0.34;
             distance += getBottomLeftDistance(start, end) * 0.31;
+            distance += getBottomMiddleDistance(start, end) * 0.26;
+            distance += getBottomRightDistance(start, end) * 0.29;
+            return distance;
+        }
+
+        private double calculateSegmentLength219(Coordinate start, Coordinate end)
+        {
+            /*           219
+                ----------------------
+                | 0.29 | 0.26 | 0.28 |
+                | 0.28 | 0.26 | 0.29 |
+                | 0.29 | 0.26 | 0.29 |
+                ----------------------
+              */
+            double distance = 0;
+            distance += getTopLeftDistance(start, end) * 0.29;
+            distance += getTopMiddleDistance(start, end) * 0.26;
+            distance += getTopRightDistance(start, end) * 0.28;
+            distance += getMiddleLeftDistance(start, end) * 0.28;
+            distance += getMiddleMiddleDistance(start, end) * 0.26;
+            distance += getMiddleRightDistance(start, end) * 0.29;
+            distance += getBottomLeftDistance(start, end) * 0.29;
             distance += getBottomMiddleDistance(start, end) * 0.26;
             distance += getBottomRightDistance(start, end) * 0.29;
             return distance;

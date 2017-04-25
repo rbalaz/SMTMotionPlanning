@@ -387,6 +387,9 @@ namespace SMTMotionPlanning
             FileStream writeStream = new FileStream(path + "new_obstacles.txt", FileMode.OpenOrCreate, FileAccess.Write);
             StreamWriter writer = new StreamWriter(writeStream);
             string line;
+            // 1280x800 will not fit, resizing is needed
+            originalImageHeight = 600;
+            originalImageWidth = 800;
             while ((line = reader.ReadLine()) != null)
             {
                 string[] lineSegments = line.Split(' ');
