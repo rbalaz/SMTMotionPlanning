@@ -15,12 +15,12 @@ namespace SMTMotionPlanning
         public int mapWidth;
         public int mapHeight;
 
-        public PathCommandsGenerator(int usedCameraId, List<Coordinate> path, int mapWidth, int mapHeight)
+        public PathCommandsGenerator(int usedCameraId, List<Coordinate> path)
         {
             this.usedCameraId = usedCameraId;
             this.path = path;
-            this.mapHeight = mapHeight;
-            this.mapWidth = mapWidth;
+            mapHeight = 800;
+            mapWidth = 1280;
         }
 
         private void rescalePathToOriginalDimensions()

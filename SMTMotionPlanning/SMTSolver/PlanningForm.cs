@@ -104,6 +104,7 @@ namespace SMTMotionPlanning
             world = null;
             pathCalculated = false;
             runIssue = false;
+            progressLabel.Text = "";
             Invalidate();
             Refresh();
         }
@@ -144,9 +145,12 @@ namespace SMTMotionPlanning
                     optimiser.Start();
                     bool success = optimiser.Join(10000);
                     if (success == false)
+                    {
                         path = backupPath;
-                    // optimisePath(pathSegments, distance);
-                    PathCommandsGenerator generator = new PathCommandsGenerator(227, path, world.width, world.length);
+                        progressLabel.Text = "Optimising failed.";
+                    }
+                    //optimisePath(pathSegments, distance);
+                    PathCommandsGenerator generator = new PathCommandsGenerator(227, path);
                     generator.initialOrientation = 0.0;
                     generator.generateAndSaveCommands();
                     pathCalculated = true;

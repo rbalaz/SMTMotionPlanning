@@ -277,7 +277,7 @@ namespace SMTMotionPlanning
             return ctx.MkAnd(obstacles.ToArray());
         }
 
-        private BoolExpr handleEllipticalObstacle(EllipticalObstacle obstacle, Context ctx, IntExpr[] destinationsX, 
+        private BoolExpr handleEllipticalObstacle(EllipticalObstacle obstacle, Context ctx, IntExpr[] destinationsX,
             IntExpr[] destinationsY, IntExpr[] sourcesX, IntExpr[] sourcesY)
         {
             if (obstacle.length != obstacle.width)
@@ -294,24 +294,62 @@ namespace SMTMotionPlanning
                 for (int i = 0; i < pathSegments; i++)
                 {
                     double radius = obstacle.length / 2.0 + obstaclePassDistance;
-                    IntExpr x0 = ctx.MkInt(obstacle.location.x);
-                    IntExpr y0 = ctx.MkInt(obstacle.location.y);
-                    IntExpr r = ctx.MkInt((Math.Floor(radius).ToString(dot)));
-                    ArithExpr dx = ctx.MkSub(destinationsX[i], sourcesX[i]);
-                    ArithExpr dy = ctx.MkSub(destinationsY[i], sourcesY[i]);
-                    ArithExpr fx = ctx.MkSub(sourcesX[i], x0);
-                    ArithExpr fy = ctx.MkSub(sourcesY[i], y0);
-                    ArithExpr a = ctx.MkAdd(ctx.MkMul(dx, dx), ctx.MkMul(dy, dy));
-                    ArithExpr b = ctx.MkMul(ctx.MkAdd(ctx.MkMul(dx, fx), ctx.MkMul(dy, fy)), ctx.MkInt(2));
-                    ArithExpr c = ctx.MkSub(ctx.MkAdd(ctx.MkMul(fx, fx), ctx.MkMul(fy, fy)), ctx.MkMul(r, r));
-                    ArithExpr discriminant = ctx.MkSub(ctx.MkMul(b, b), ctx.MkMul(ctx.MkInt(4), a, c));
-                    BoolExpr final = ctx.MkLe(discriminant, ctx.MkInt(0));
+                    int translateX = obstacle.location.x;
+                    int translateY = obstacle.location.y;
+                    IntExpr dist = ctx.MkInt((int)radius);
+                    ArithExpr adjustedSourceX = ctx.MkSub(sourcesX[i], ctx.MkInt(translateX));
+                    ArithExpr adjustedSourceY = ctx.MkSub(sourcesY[i], ctx.MkInt(translateY));
+                    ArithExpr adjustedDestX = ctx.MkSub(destinationsX[i], ctx.MkInt(translateX));
+                    ArithExpr adjustedDestY = ctx.MkSub(destinationsY[i], ctx.MkInt(translateY));
 
+                    ArithExpr dx = ctx.MkSub(adjustedDestX, adjustedSourceX);
+                    ArithExpr dy = ctx.MkSub(adjustedDestY, adjustedSourceY);
+                    ArithExpr dr_2 = ctx.MkAdd(ctx.MkMul(dx, dx), ctx.MkMul(dy, dy));
+                    ArithExpr D = ctx.MkSub(ctx.MkMul(adjustedSourceX, adjustedDestY), ctx.MkMul(adjustedDestX, adjustedSourceY));
+
+                    ArithExpr incidence = ctx.MkSub(ctx.MkMul(ctx.MkMul(dist, dist), dr_2), ctx.MkMul(D, D));
+                    BoolExpr final = ctx.MkLe(incidence, ctx.MkInt(0));
                     avoidingCircle[i] = final;
                 }
                 return ctx.MkAnd(avoidingCircle);
             }
         }
+
+        //private BoolExpr handleEllipticalObstacle(EllipticalObstacle obstacle, Context ctx, IntExpr[] destinationsX, 
+        //    IntExpr[] destinationsY, IntExpr[] sourcesX, IntExpr[] sourcesY)
+        //{
+        //    if (obstacle.length != obstacle.width)
+        //    {
+        //        RectangularObstacle rectangle = new RectangularObstacle(obstacle.length, obstacle.width,
+        //            new Coordinate(obstacle.location.x - obstacle.width / 2, obstacle.location.y - obstacle.length / 2));
+        //        return handleRectangularObstacle(rectangle, ctx, sourcesX, sourcesY, destinationsX, destinationsY);
+        //    }
+        //    else
+        //    {
+        //        BoolExpr[] avoidingCircle = new BoolExpr[pathSegments];
+        //        NumberFormatInfo dot = new NumberFormatInfo();
+        //        dot.NumberDecimalSeparator = ".";
+        //        for (int i = 0; i < pathSegments; i++)
+        //        {
+        //            double radius = obstacle.length / 2.0 + obstaclePassDistance;
+        //            IntExpr x0 = ctx.MkInt(obstacle.location.x);
+        //            IntExpr y0 = ctx.MkInt(obstacle.location.y);
+        //            IntExpr r = ctx.MkInt((Math.Floor(radius).ToString(dot)));
+        //            ArithExpr dx = ctx.MkSub(destinationsX[i], sourcesX[i]);
+        //            ArithExpr dy = ctx.MkSub(destinationsY[i], sourcesY[i]);
+        //            ArithExpr fx = ctx.MkSub(sourcesX[i], x0);
+        //            ArithExpr fy = ctx.MkSub(sourcesY[i], y0);
+        //            ArithExpr a = ctx.MkAdd(ctx.MkMul(dx, dx), ctx.MkMul(dy, dy));
+        //            ArithExpr b = ctx.MkMul(ctx.MkAdd(ctx.MkMul(dx, fx), ctx.MkMul(dy, fy)), ctx.MkInt(2));
+        //            ArithExpr c = ctx.MkSub(ctx.MkAdd(ctx.MkMul(fx, fx), ctx.MkMul(fy, fy)), ctx.MkMul(r, r));
+        //            ArithExpr discriminant = ctx.MkSub(ctx.MkMul(b, b), ctx.MkMul(ctx.MkInt(4), a, c));
+        //            BoolExpr final = ctx.MkLe(discriminant, ctx.MkInt(0));
+
+        //            avoidingCircle[i] = final;
+        //        }
+        //        return ctx.MkAnd(avoidingCircle);
+        //    }
+        //}
 
         private BoolExpr handleRectangularObstacle(RectangularObstacle obstacle, Context ctx, IntExpr[] sourcesX, 
             IntExpr[] sourcesY, IntExpr[] destinationsX, IntExpr[] destinationsY)
