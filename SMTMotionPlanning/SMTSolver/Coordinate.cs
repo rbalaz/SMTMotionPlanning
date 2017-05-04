@@ -1,8 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace SMTMotionPlanning
 {
@@ -11,8 +7,7 @@ namespace SMTMotionPlanning
         public int x { get; private set; }
         public int y { get; private set; }
         public int z { get; private set; }
-        private bool is3DWorld;
-        public bool Is3DWorld { get; }
+        public bool is3DWorld { get; set;}
 
         public Coordinate(int[] coordinates)
         {

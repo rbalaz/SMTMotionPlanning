@@ -6,7 +6,7 @@ namespace SMTMotionPlanning
 {
     class ImageCapture
     {
-        class CameraNotFoundException : Exception { }
+        public class CameraNotFoundException : Exception { }
         private string source;
         public ImageCapture(string source)
         {

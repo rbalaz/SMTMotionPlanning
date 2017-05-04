@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Collections.Generic;
 
 namespace SMTMotionPlanning
 {
@@ -13,7 +9,6 @@ namespace SMTMotionPlanning
         public int width { get; set; }
         public int length { get; set; }
         public List<Obstacle> obstacles { get; set; }
-        public Agent agent { get; set; }
 
         public Space(int width, int length)
         {

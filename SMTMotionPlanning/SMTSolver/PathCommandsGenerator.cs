@@ -11,6 +11,8 @@ namespace SMTMotionPlanning
     {
         private int usedCameraId;
         public double initialOrientation { get; set; }
+        List<string> QboCommands;
+        List<string> NaoCommands;
         List<Coordinate> path;
         public int mapWidth;
         public int mapHeight;
@@ -21,6 +23,8 @@ namespace SMTMotionPlanning
             this.path = path;
             mapHeight = 800;
             mapWidth = 1280;
+            QboCommands = new List<string>();
+            NaoCommands = new List<string>();
         }
 
         private void rescalePathToOriginalDimensions()
@@ -44,6 +48,10 @@ namespace SMTMotionPlanning
             for (int i = 0; i < path.Count - 1; i++)
             {
                 double orientationChange = changeOrientation(path[i], path[i + 1], currentOrientation);
+                if (orientationChange > 3.14)
+                    orientationChange -= 2 * Math.PI;
+                if (orientationChange < -3.14)
+                    orientationChange += 2 * Math.PI;
                 writer.WriteLine("Rotate: " + orientationChange);
                 currentOrientation += orientationChange;
                 double length;
@@ -52,7 +60,23 @@ namespace SMTMotionPlanning
                 else
                     length = calculateSegmentLength219(path[i], path[i + 1]);
                 writer.WriteLine("Move forward: " + length);
+                generateQboCommand(orientationChange, length);
+                generateNaoCommand(orientationChange, length);
             }
+            writer.Close();
+            stream.Close();
+
+            stream = new FileStream("Qbo_commands.txt", FileMode.Create, FileAccess.Write);
+            writer = new StreamWriter(stream);
+            foreach (string line in QboCommands)
+                writer.WriteLine(line);
+            writer.Close();
+            stream.Close();
+
+            stream = new FileStream("Nao_commands.txt", FileMode.Create, FileAccess.Write);
+            writer = new StreamWriter(stream);
+            foreach (string line in NaoCommands)
+                writer.WriteLine(line);
             writer.Close();
             stream.Close();
         }
@@ -784,6 +808,27 @@ namespace SMTMotionPlanning
                         return RealCoordinate.getDistanceBetweenCoordinates(new RealCoordinate(start.x, start.y), new RealCoordinate(end.x, end.y));
             }
             return 0;
+        }
+
+        private void generateQboCommand(double orientationChange, double distance)
+        {
+            //rostopic pub -1 /cmd_vel geometry_msgs/Twist [1,0,0] [0,0,0]
+            // orientation change needs to be tested for being implemented
+            QboCommands.Add("[0,0,0] [0,0,1]");
+            //distance command
+            string roundedDistance = string.Format("{0:F2}", distance/100.0);
+            QboCommands.Add("[" + roundedDistance.Replace(",", ".") + ",0,0] [0,0,0]");
+        }
+
+        private void generateNaoCommand(double orientationChange, double distance)
+        {
+            //motion.moveTo(0, 0, 3.14)
+            //orientation change
+            string roundedOrientationChange = string.Format("{0:F2}", orientationChange);
+            NaoCommands.Add("[0,0," + roundedOrientationChange.Replace(",", ".") + "]");
+            //distance
+            string roundedDistance = string.Format("{0:F2}", distance / 100.0);
+            NaoCommands.Add("[" + roundedDistance.Replace(",", ".") + ",0,0]");
         }
     }
 }

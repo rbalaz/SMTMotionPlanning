@@ -138,18 +138,20 @@ namespace SMTMotionPlanning
                 else
                 {
                     paths.Add(path.ToArray());
-                    List<Coordinate> backupPath = clonePath(path);
-                    Thread optimiser = new Thread(() => optimisePath(pathSegments, distance));
-                    progressLabel.Text = "Optimising...";
-                    progressLabel.Invalidate();
-                    optimiser.Start();
-                    bool success = optimiser.Join(10000);
-                    if (success == false)
-                    {
-                        path = backupPath;
-                        progressLabel.Text = "Optimising failed.";
-                    }
-                    //optimisePath(pathSegments, distance);
+                    //List<Coordinate> backupPath = clonePath(path);
+                    //Thread optimiser = new Thread(() => optimisePath(pathSegments, distance));
+                    //progressLabel.Text = "Optimising...";
+                    //progressLabel.Invalidate();
+                    //optimiser.Start();
+                    //bool success = optimiser.Join(10000);
+                    //if (success == false)
+                    //{
+                    //    path = backupPath;
+                    //    progressLabel.Text = "Optimising failed.";
+                    //}
+                    //else
+                    //    progressLabel.Text = "Path calculated.";
+                    optimisePath(pathSegments, distance);
                     PathCommandsGenerator generator = new PathCommandsGenerator(227, path);
                     generator.initialOrientation = 0.0;
                     generator.generateAndSaveCommands();
@@ -195,25 +197,20 @@ namespace SMTMotionPlanning
             {
                 StreamReader sr = new StreamReader(openFileDialog1.FileName);
                 string line;
-                bool is2D = false;
                 int width = 0;
                 int length = 0;
-                int height = 0;
                 while ((line = sr.ReadLine()) != null)
                 {
                     if (line.Equals("2D"))
-                        is2D = true;
+                        continue;
                     else if (line.ToUpper().Contains("W"))
                         width = int.Parse(line.Split()[1]);
                     else if (line.ToUpper().Contains("L"))
                         length = int.Parse(line.Split()[1]);
-                    else if (line.ToUpper().Contains("H"))
-                        height = int.Parse(line.Split()[1]);
+                    else
+                        throw new IOException();
                 }
-                if (is2D)
-                    world = new Space2D(width, length);
-                else
-                    world = new Space3D(width, length, height);
+                world = new Space2D(width, length);
             }
         }
 
@@ -554,15 +551,16 @@ namespace SMTMotionPlanning
 
         private void optimisePath(int pathSegments, int obstaclePassDistance)
         {
-            PathFinding finder = new PathFinding(agent.currentLocation, goalLocation, pathSegments + 1, obstaclePassDistance, 50000, world, curvedPath);
-            Coordinate[] longerPathOne = finder.findPath();
-            paths.Add(longerPathOne);
-            finder = new PathFinding(agent.currentLocation, goalLocation, pathSegments + 2, obstaclePassDistance, 50000, world, curvedPath);
-            Coordinate[] longerPathTwo = finder.findPath();
-            paths.Add(longerPathTwo);
+            //PathFinding finder = new PathFinding(agent.currentLocation, goalLocation, pathSegments + 1, obstaclePassDistance, 50000, world, curvedPath);
+            //Coordinate[] longerPathOne = finder.findPath();
+            //paths.Add(longerPathOne);
+            //finder = new PathFinding(agent.currentLocation, goalLocation, pathSegments + 2, obstaclePassDistance, 50000, world, curvedPath);
+            //Coordinate[] longerPathTwo = finder.findPath();
+            //paths.Add(longerPathTwo);
 
-            optimisePathLength(longerPathOne.Length - 1, longerPathOne.ToList());
-            optimisePathLength(longerPathTwo.Length - 1, longerPathTwo.ToList());
+            //optimisePathLength(longerPathOne.Length - 1, longerPathOne.ToList());
+            //optimisePathLength(longerPathTwo.Length - 1, longerPathTwo.ToList());
+            optimisePathLength(pathSegments, path);
         }
 
         private void optimisePathLength(int pathSegments, List<Coordinate> path)
@@ -585,14 +583,23 @@ namespace SMTMotionPlanning
                     distance, pathLength, world, curvedPath);
                 try
                 {
-                    Coordinate[] newPath = finder.findPath();
-                    paths.Add(newPath);
-                    if (bestFitness > evaluateFitnessValueOfPath(newPath))
+                    Coordinate[] newPath = null;
+                    Thread optimiser = new Thread(() => newPath = finder.findPath());
+                    optimiser.Start();
+                    bool success = optimiser.Join(10000);
+                    if (success == true)
                     {
-                        this.path = new List<Coordinate>();
-                        this.path.AddRange(newPath);
-                        bestFitness = evaluateFitnessValueOfPath(newPath);
+                        paths.Add(newPath);
+                        double newPathFitness = evaluateFitnessValueOfPath(newPath);
+                        if (bestFitness > newPathFitness)
+                        {
+                            this.path = new List<Coordinate>();
+                            this.path.AddRange(newPath);
+                            bestFitness = evaluateFitnessValueOfPath(newPath);
+                        }
                     }
+                    else
+                        return;
                 }
                 catch (PathFinding.TestFailedException)
                 {
@@ -620,7 +627,7 @@ namespace SMTMotionPlanning
             // linear dependence
             if (path.Length > 2)
             {
-                for (int i = 0; i < path.Length - 3; i++)
+                for (int i = 0; i < path.Length - 2; i++)
                 {
                     double k1 = (double)(path[i + 1].y - path[i].y) / (double)(path[i + 1].x - path[i].x);
                     double q1 = path[i].y - path[i].x * k1;
@@ -634,8 +641,8 @@ namespace SMTMotionPlanning
             }
 
             // Path length
-            double airDistance = Math.Pow(Coordinate.getXDistanceBetweenCoordinates(path[0], path[path.Length - 1]), 2) +
-                Math.Pow(Coordinate.getYDistanceBetweenCoordinates(path[0], path[path.Length - 1]), 2);
+            double airDistance = Math.Sqrt(Math.Pow(Coordinate.getXDistanceBetweenCoordinates(path[0], path[path.Length - 1]), 2) +
+                Math.Pow(Coordinate.getYDistanceBetweenCoordinates(path[0], path[path.Length - 1]), 2));
             fitness += evaluatePathLength(path) / airDistance * 100;
 
             return fitness;
@@ -643,12 +650,18 @@ namespace SMTMotionPlanning
 
         private double evaluateAngleBetweenTwoLineSegments(LineSegment first, LineSegment second)
         {
-            if (double.IsInfinity(first.k))
-                return Math.Atan(Math.Abs(second.k)) * 180 / Math.PI;
-            else if (double.IsInfinity(second.k))
-                return Math.Atan(Math.Abs(first.k)) * 180 / Math.PI;
-            else
-                return Math.Atan(Math.Abs((first.k - second.k) / (1 + first.k * second.k))) * Math.PI;
+            int firstSx = first.end.x - first.start.x;
+            int firstSy = first.end.y - first.start.y;
+            int secondSx = second.end.x - second.start.x;
+            int secondSy = second.end.y - second.start.y;
+
+            int dotProduct = firstSx * secondSx + firstSy * secondSy;
+            double firstLength = Math.Sqrt(firstSx * firstSx + firstSy * firstSy);
+            double secondLength = Math.Sqrt(secondSx * secondSx + secondSy * secondSy);
+
+            double angle = Math.Acos(dotProduct / (firstLength * secondLength));
+
+            return angle;
         }
 
         private double evaluatePathLength(Coordinate[] path)

@@ -36,14 +36,6 @@ namespace SMTMotionPlanning
 
         public Coordinate[] findPath()
         {
-            if (startLocation.Is3DWorld)
-                return find3DPath();
-            else
-                return find2DPath();
-        }
-
-        private Coordinate[] find2DPath()
-        {
             Coordinate[] path = new Coordinate[pathSegments + 1];
 
             Context ctx = new Context();
@@ -315,7 +307,7 @@ namespace SMTMotionPlanning
             }
         }
 
-        //private BoolExpr handleEllipticalObstacle(EllipticalObstacle obstacle, Context ctx, IntExpr[] destinationsX, 
+        //private BoolExpr handleEllipticalObstacle(EllipticalObstacle obstacle, Context ctx, IntExpr[] destinationsX,
         //    IntExpr[] destinationsY, IntExpr[] sourcesX, IntExpr[] sourcesY)
         //{
         //    if (obstacle.length != obstacle.width)
