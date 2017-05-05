@@ -138,19 +138,8 @@ namespace SMTMotionPlanning
                 else
                 {
                     paths.Add(path.ToArray());
-                    //List<Coordinate> backupPath = clonePath(path);
-                    //Thread optimiser = new Thread(() => optimisePath(pathSegments, distance));
-                    //progressLabel.Text = "Optimising...";
-                    //progressLabel.Invalidate();
-                    //optimiser.Start();
-                    //bool success = optimiser.Join(10000);
-                    //if (success == false)
-                    //{
-                    //    path = backupPath;
-                    //    progressLabel.Text = "Optimising failed.";
-                    //}
-                    //else
-                    //    progressLabel.Text = "Path calculated.";
+                    progressLabel.Text = "Optimising...";
+                    progressLabel.Invalidate();
                     optimisePath(pathSegments, distance);
                     PathCommandsGenerator generator = new PathCommandsGenerator(227, path);
                     generator.initialOrientation = 0.0;
@@ -586,7 +575,7 @@ namespace SMTMotionPlanning
                     Coordinate[] newPath = null;
                     Thread optimiser = new Thread(() => newPath = finder.findPath());
                     optimiser.Start();
-                    bool success = optimiser.Join(10000);
+                    bool success = optimiser.Join(5000);
                     if (success == true)
                     {
                         paths.Add(newPath);
@@ -661,7 +650,7 @@ namespace SMTMotionPlanning
 
             double angle = Math.Acos(dotProduct / (firstLength * secondLength));
 
-            return angle;
+            return angle * 180 / Math.PI;
         }
 
         private double evaluatePathLength(Coordinate[] path)
@@ -670,8 +659,8 @@ namespace SMTMotionPlanning
 
             for (int i = 0; i < path.Length - 2; i++)
             {
-                pathLength += Math.Pow(Coordinate.getXDistanceBetweenCoordinates(path[i], path[i + 1]), 2) +
-                Math.Pow(Coordinate.getYDistanceBetweenCoordinates(path[i], path[i + 1]), 2);
+                pathLength += Math.Sqrt(Math.Pow(Coordinate.getXDistanceBetweenCoordinates(path[i], path[i + 1]), 2) +
+                Math.Pow(Coordinate.getYDistanceBetweenCoordinates(path[i], path[i + 1]), 2));
             }
 
             return pathLength;
