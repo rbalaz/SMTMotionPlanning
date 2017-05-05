@@ -102,6 +102,8 @@ namespace SMTMotionPlanning
         public void doItAll()
         {
             // Do it all
+            if (img1 == null || img2 == null)
+                return;
             Bitmap afterHarris = harris();
             Bitmap afterCorrelation = correlation();
             Bitmap afterRansac = ransac();

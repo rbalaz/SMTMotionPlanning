@@ -1,6 +1,7 @@
 ﻿using Emgu.CV;
 using Emgu.CV.Structure;
 using System;
+using System.IO;
 
 namespace SMTMotionPlanning
 {
@@ -19,7 +20,8 @@ namespace SMTMotionPlanning
             Image<Bgr, byte> image = frame.ToImage<Bgr, byte>();
             string[] segments = source.Split('.');
             string[] moreSegments = segments[3].Split('/');
-            string path = @"C:\Users\Robert\Documents\Visual Studio 2015\Projects\SMTMotionPlanning\SMTMotionPlanning\Pictures\";
+            string path = new DirectoryInfo(Environment.CurrentDirectory).Parent.Parent.Parent.FullName;
+            path = Path.Combine(path, @"Pictures");
             image.Save(path + "fromCamera" + moreSegments[0] + ".png");
         }
 

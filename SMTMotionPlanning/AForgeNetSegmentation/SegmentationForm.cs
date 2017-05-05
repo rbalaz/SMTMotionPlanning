@@ -3,6 +3,8 @@ using System.Drawing;
 using System.Drawing.Drawing2D;
 using System.Windows.Forms;
 using System.Drawing.Imaging;
+using System.IO;
+using System.Threading;
 
 namespace SMTMotionPlanning
 {
@@ -16,6 +18,7 @@ namespace SMTMotionPlanning
         private int[] greenBounds;
         private int[] redBounds;
         private int[] blueBounds;
+        ToolTip locationToolTip;
 
         public SegmentationForm()
         {
@@ -29,6 +32,7 @@ namespace SMTMotionPlanning
             originalImageHeight = 0;
             StartPosition = FormStartPosition.Manual;
             Location = new Point(Screen.PrimaryScreen.Bounds.Right / 4, 0);
+            locationToolTip = new ToolTip();
         }
 
         private void executeButton_Click(object sender, EventArgs e)
@@ -44,9 +48,17 @@ namespace SMTMotionPlanning
                 Segmentation segmentation = new Segmentation(redBounds, greenBounds, blueBounds, minimumCornerDistance,
                     originalImageHeight, originalImageWidth);
                 Bitmap resizedImage = ResizeImage(image, 485, 281);
-                segmentation.ProcessImage(resizedImage);
-                Rectangle rect = new Rectangle(5, 286, 485, 281);
-                tableLayoutGraphics.DrawImage(resizedImage, rect);
+                Thread segmentiser = new Thread(() => segmentation.ProcessImage(resizedImage));
+                segmentiser.Start();
+                bool success = segmentiser.Join(10000);
+                if (success == true)
+                {
+                    Rectangle rect = new Rectangle(5, 286, 485, 281);
+                    tableLayoutGraphics.DrawImage(resizedImage, rect);
+                }
+                else
+                    MessageBox.Show("Segmentation failed. Please try different color borders.", "Segmentation error",
+                        MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
             else
                 MessageBox.Show("Invalid background color boundary settings. Lower boundary must be lower than upper boundary",
@@ -58,8 +70,10 @@ namespace SMTMotionPlanning
         {
             // width: 485
             // height: 281
+            string path = new DirectoryInfo(Environment.CurrentDirectory).Parent.Parent.Parent.FullName;
+            path = Path.Combine(path, @"Pictures");
             openFileDialog1.Filter = "Png Images(*.png)|*.png|Jpeg Images(*.jpg)|*.jpg|Bitmaps(*.bmp)|*.bmp";
-            openFileDialog1.InitialDirectory = @"C:\Users\Robert\Documents\Visual Studio 2015\Projects\SMTMotionPlanning\SMTMotionPlanning\Pictures";
+            openFileDialog1.InitialDirectory = path;
             if (openFileDialog1.ShowDialog() == DialogResult.OK)
             {
                 image = new Bitmap(openFileDialog1.FileName);
@@ -156,14 +170,16 @@ namespace SMTMotionPlanning
         private void stitchButton_Click(object sender, EventArgs e)
         {
             Bitmap image1 = null, image2 = null;
+            string path = new DirectoryInfo(Environment.CurrentDirectory).Parent.Parent.Parent.FullName;
+            path = Path.Combine(path, @"Pictures");
             openFileDialog1.Filter = "Png Images(*.png)|*.png|Jpeg Images(*.jpg)|*.jpg|Bitmaps(*.bmp)|*.bmp";
-            openFileDialog1.InitialDirectory = @"C:\Users\Robert\Documents\Visual Studio 2015\Projects\SMTMotionPlanning\SMTMotionPlanning\Pictures";
+            openFileDialog1.InitialDirectory = path;
             if (openFileDialog1.ShowDialog() == DialogResult.OK)
             {
                 image1 = new Bitmap(openFileDialog1.FileName);
             }
             openFileDialog2.Filter = "Png Images(*.png)|*.png|Jpeg Images(*.jpg)|*.jpg|Bitmaps(*.bmp)|*.bmp";
-            openFileDialog2.InitialDirectory = @"C:\Users\Robert\Documents\Visual Studio 2015\Projects\SMTMotionPlanning\SMTMotionPlanning\Pictures";
+            openFileDialog2.InitialDirectory = path;
             if (openFileDialog2.ShowDialog() == DialogResult.OK)
             {
                 image2 = new Bitmap(openFileDialog2.FileName);
@@ -197,6 +213,23 @@ namespace SMTMotionPlanning
             }
             else
                 MessageBox.Show("Image not found!", "Error loading image", MessageBoxButtons.OK, MessageBoxIcon.Error);
+        }
+
+        private void tableLayoutPanel1_MouseClick(object sender, MouseEventArgs e)
+        {
+            if (image != null)
+            {
+                if (e.X >= 5 && e.X <= 490 && e.Y >= 5 && e.Y <= 290)
+                    locationToolTip.Show("X: " + e.X + " Y: " + e.Y, this, e.X, e.Y, 2500);
+                else
+                {
+                    Image resizedImage = ResizeImage(image, 485, 281);
+                    Rectangle rect = new Rectangle(5, 5, 485, 281);
+                    tableLayoutGraphics.DrawImage(resizedImage, rect);
+                    Invalidate();
+                }
+                    
+            }
         }
     }
 }

@@ -140,10 +140,14 @@ namespace SMTMotionPlanning
                     paths.Add(path.ToArray());
                     progressLabel.Text = "Optimising...";
                     progressLabel.Invalidate();
+                    Thread.Sleep(10);
                     optimisePath(pathSegments, distance);
-                    PathCommandsGenerator generator = new PathCommandsGenerator(227, path);
-                    generator.initialOrientation = 0.0;
-                    generator.generateAndSaveCommands();
+                    if (commandsCheckBox.Checked == true)
+                    {
+                        PathCommandsGenerator generator = new PathCommandsGenerator(227, path);
+                        generator.initialOrientation = 0.0;
+                        generator.generateAndSaveCommands();
+                    }
                     pathCalculated = true;
                     progressLabel.Text = "Path calculated.";
                 }
@@ -180,8 +184,10 @@ namespace SMTMotionPlanning
             // w number
             // l number
             // h number(only if 3D)
+            string path = new DirectoryInfo(Environment.CurrentDirectory).Parent.Parent.Parent.FullName;
+            path = Path.Combine(path, @"worldFiles");
             openFileDialog1.Filter = "Text|*.txt|All|*.*";
-            openFileDialog1.InitialDirectory = @"C:\Users\Robert\Documents\Visual Studio 2015\Projects\SMTMotionPlanning\SMTMotionPlanning\worldFiles";
+            openFileDialog1.InitialDirectory = path;
             if (openFileDialog1.ShowDialog() == DialogResult.OK)
             {
                 StreamReader sr = new StreamReader(openFileDialog1.FileName);
@@ -215,8 +221,10 @@ namespace SMTMotionPlanning
             // Expected format used for elliptical obstacles in file:
             // e sx sy width length
             obstacles = new List<Obstacle>();
+            string path = new DirectoryInfo(Environment.CurrentDirectory).Parent.Parent.Parent.FullName;
+            path = Path.Combine(path, @"obstacleFiles");
             openFileDialog1.Filter = "Text|*.txt|All|*.*";
-            openFileDialog1.InitialDirectory = @"C:\Users\Robert\Documents\Visual Studio 2015\Projects\SMTMotionPlanning\SMTMotionPlanning\obstacleFiles";
+            openFileDialog1.InitialDirectory = path;
             if (openFileDialog1.ShowDialog() == DialogResult.OK)
             {
                 StreamReader sr = new StreamReader(openFileDialog1.FileName);
@@ -540,16 +548,31 @@ namespace SMTMotionPlanning
 
         private void optimisePath(int pathSegments, int obstaclePassDistance)
         {
-            //PathFinding finder = new PathFinding(agent.currentLocation, goalLocation, pathSegments + 1, obstaclePassDistance, 50000, world, curvedPath);
-            //Coordinate[] longerPathOne = finder.findPath();
-            //paths.Add(longerPathOne);
-            //finder = new PathFinding(agent.currentLocation, goalLocation, pathSegments + 2, obstaclePassDistance, 50000, world, curvedPath);
-            //Coordinate[] longerPathTwo = finder.findPath();
-            //paths.Add(longerPathTwo);
+            PathFinding finder = new PathFinding(agent.currentLocation, goalLocation, pathSegments + 1, obstaclePassDistance, 50000, world, curvedPath);
+            Coordinate[] longerPathOne = null;
+            try
+            {
+                longerPathOne = finder.findPath();
+                paths.Add(longerPathOne);
+            }
+            catch (PathFinding.TestFailedException)
+            { }
 
-            //optimisePathLength(longerPathOne.Length - 1, longerPathOne.ToList());
-            //optimisePathLength(longerPathTwo.Length - 1, longerPathTwo.ToList());
+            finder = new PathFinding(agent.currentLocation, goalLocation, pathSegments + 2, obstaclePassDistance, 50000, world, curvedPath);
+            Coordinate[] longerPathTwo = null;
+            try
+            {
+                longerPathTwo = finder.findPath();
+                paths.Add(longerPathTwo);
+            }
+            catch (PathFinding.TestFailedException)
+            { }
+
             optimisePathLength(pathSegments, path);
+            if (longerPathOne != null)
+                optimisePathLength(longerPathOne.Length - 1, longerPathOne.ToList());
+            if (longerPathTwo != null)
+                optimisePathLength(longerPathTwo.Length - 1, longerPathTwo.ToList());
         }
 
         private void optimisePathLength(int pathSegments, List<Coordinate> path)
@@ -575,7 +598,7 @@ namespace SMTMotionPlanning
                     Coordinate[] newPath = null;
                     Thread optimiser = new Thread(() => newPath = finder.findPath());
                     optimiser.Start();
-                    bool success = optimiser.Join(5000);
+                    bool success = optimiser.Join(1500);
                     if (success == true)
                     {
                         paths.Add(newPath);

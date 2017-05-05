@@ -55,6 +55,8 @@
             this.blueUpperLabel = new System.Windows.Forms.Label();
             this.checkBox = new System.Windows.Forms.TextBox();
             this.checkButton = new System.Windows.Forms.Button();
+            this.label19 = new System.Windows.Forms.Label();
+            this.cameraBox = new System.Windows.Forms.TextBox();
             this.flowLayoutPanel2 = new System.Windows.Forms.FlowLayoutPanel();
             this.label1 = new System.Windows.Forms.Label();
             this.flowLayoutPanel3 = new System.Windows.Forms.FlowLayoutPanel();
@@ -80,8 +82,6 @@
             this.blueUpperBar = new System.Windows.Forms.HScrollBar();
             this.label16 = new System.Windows.Forms.Label();
             this.openFileDialog2 = new System.Windows.Forms.OpenFileDialog();
-            this.label19 = new System.Windows.Forms.Label();
-            this.cameraBox = new System.Windows.Forms.TextBox();
             this.tableLayoutPanel1.SuspendLayout();
             this.flowLayoutPanel1.SuspendLayout();
             this.flowLayoutPanel4.SuspendLayout();
@@ -120,6 +120,7 @@
             this.tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 50F));
             this.tableLayoutPanel1.Size = new System.Drawing.Size(784, 562);
             this.tableLayoutPanel1.TabIndex = 1;
+            this.tableLayoutPanel1.MouseClick += new System.Windows.Forms.MouseEventHandler(this.tableLayoutPanel1_MouseClick);
             // 
             // flowLayoutPanel1
             // 
@@ -390,6 +391,24 @@
             this.checkButton.UseVisualStyleBackColor = true;
             this.checkButton.Click += new System.EventHandler(this.checkButton_Click);
             // 
+            // label19
+            // 
+            this.label19.AutoSize = true;
+            this.label19.Font = new System.Drawing.Font("Microsoft Sans Serif", 12.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(238)));
+            this.label19.Location = new System.Drawing.Point(3, 218);
+            this.label19.Name = "label19";
+            this.label19.Size = new System.Drawing.Size(134, 20);
+            this.label19.TabIndex = 19;
+            this.label19.Text = "Camera number:";
+            // 
+            // cameraBox
+            // 
+            this.cameraBox.Location = new System.Drawing.Point(45, 241);
+            this.cameraBox.Margin = new System.Windows.Forms.Padding(45, 3, 3, 3);
+            this.cameraBox.Name = "cameraBox";
+            this.cameraBox.Size = new System.Drawing.Size(45, 20);
+            this.cameraBox.TabIndex = 20;
+            // 
             // flowLayoutPanel2
             // 
             this.flowLayoutPanel2.Controls.Add(this.label1);
@@ -656,24 +675,6 @@
             // openFileDialog2
             // 
             this.openFileDialog2.FileName = "openFileDialog2";
-            // 
-            // label19
-            // 
-            this.label19.AutoSize = true;
-            this.label19.Font = new System.Drawing.Font("Microsoft Sans Serif", 12.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(238)));
-            this.label19.Location = new System.Drawing.Point(3, 218);
-            this.label19.Name = "label19";
-            this.label19.Size = new System.Drawing.Size(134, 20);
-            this.label19.TabIndex = 19;
-            this.label19.Text = "Camera number:";
-            // 
-            // cameraBox
-            // 
-            this.cameraBox.Location = new System.Drawing.Point(45, 241);
-            this.cameraBox.Margin = new System.Windows.Forms.Padding(45, 3, 3, 3);
-            this.cameraBox.Name = "cameraBox";
-            this.cameraBox.Size = new System.Drawing.Size(45, 20);
-            this.cameraBox.TabIndex = 20;
             // 
             // SegmentationForm
             // 

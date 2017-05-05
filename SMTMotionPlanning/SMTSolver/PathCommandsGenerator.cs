@@ -69,14 +69,20 @@ namespace SMTMotionPlanning
             stream = new FileStream("Qbo_commands.txt", FileMode.Create, FileAccess.Write);
             writer = new StreamWriter(stream);
             foreach (string line in QboCommands)
-                writer.WriteLine(line);
+            {
+                writer.Write("rostopic pub -1 /cmd_vel geometry_msgs/Twist");
+                writer.Write(" " + line);
+            }
             writer.Close();
             stream.Close();
 
             stream = new FileStream("Nao_commands.txt", FileMode.Create, FileAccess.Write);
             writer = new StreamWriter(stream);
             foreach (string line in NaoCommands)
-                writer.WriteLine(line);
+            {
+                writer.Write("motionProxy.moveTo");
+                writer.WriteLine(line.Replace("[", "(").Replace("]", ")"));
+            }
             writer.Close();
             stream.Close();
         }
@@ -812,23 +818,29 @@ namespace SMTMotionPlanning
 
         private void generateQboCommand(double orientationChange, double distance)
         {
-            //rostopic pub -1 /cmd_vel geometry_msgs/Twist [1,0,0] [0,0,0]
-            // orientation change needs to be tested for being implemented
-            QboCommands.Add("[0,0,0] [0,0,1]");
-            //distance command
-            string roundedDistance = string.Format("{0:F2}", distance/100.0);
-            QboCommands.Add("[" + roundedDistance.Replace(",", ".") + ",0,0] [0,0,0]");
+            // rostopic pub -1 /cmd_vel geometry_msgs/Twist [1,0,0] [0,0,0]
+            // 1    ... 45 counter-clockwise
+            // 1/45 ...  1 counter-clockwise
+            string roundedOrientationChange = string.Format("{0:F2}", 4 * orientationChange / Math.PI);
+            QboCommands.Add("[0,0,0] [0,0," + roundedOrientationChange.Replace(",", ".") + "]");
+            // distance command
+            string roundedDistance = string.Format("{0:F2}", distance / 52.0);
+            string movementDirectionCorrection = string.Format("{0:F2}", distance / 104.0);
+            // 1    ... 52cm
+            // 1/52 ...  1cm
+            QboCommands.Add("[" + roundedDistance.Replace(",", ".") + ",0,0] [0,0," + movementDirectionCorrection + "]");
         }
 
         private void generateNaoCommand(double orientationChange, double distance)
         {
-            //motion.moveTo(0, 0, 3.14)
-            //orientation change
+            // motion.moveTo(0, 0, 3.14)
+            // orientation change
             string roundedOrientationChange = string.Format("{0:F2}", orientationChange);
             NaoCommands.Add("[0,0," + roundedOrientationChange.Replace(",", ".") + "]");
-            //distance
-            string roundedDistance = string.Format("{0:F2}", distance / 100.0);
-            NaoCommands.Add("[" + roundedDistance.Replace(",", ".") + ",0,0]");
+            // Nao 9 moves approximately 22.5% more than he should
+            string roundedDistance = string.Format("{0:F2}", distance / 122.5);
+            string movementDirectionCorrection = "0.03";
+            NaoCommands.Add("[" + roundedDistance.Replace(",", ".") + "," + movementDirectionCorrection + ",0]");
         }
     }
 }

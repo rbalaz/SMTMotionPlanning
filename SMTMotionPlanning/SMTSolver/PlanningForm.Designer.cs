@@ -62,6 +62,7 @@
             this.label8 = new System.Windows.Forms.Label();
             this.distanceBox = new System.Windows.Forms.TextBox();
             this.openFileDialog1 = new System.Windows.Forms.OpenFileDialog();
+            this.commandsCheckBox = new System.Windows.Forms.CheckBox();
             this.tableLayoutPanel1.SuspendLayout();
             this.flowLayoutPanel1.SuspendLayout();
             this.flowLayoutPanel2.SuspendLayout();
@@ -85,7 +86,7 @@
             this.tableLayoutPanel1.RowCount = 2;
             this.tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 100F));
             this.tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 45F));
-            this.tableLayoutPanel1.Size = new System.Drawing.Size(624, 442);
+            this.tableLayoutPanel1.Size = new System.Drawing.Size(640, 480);
             this.tableLayoutPanel1.TabIndex = 0;
             // 
             // flowLayoutPanel1
@@ -97,9 +98,9 @@
             this.flowLayoutPanel1.Controls.Add(this.runButton);
             this.flowLayoutPanel1.Controls.Add(this.closeButton);
             this.flowLayoutPanel1.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.flowLayoutPanel1.Location = new System.Drawing.Point(163, 400);
+            this.flowLayoutPanel1.Location = new System.Drawing.Point(163, 438);
             this.flowLayoutPanel1.Name = "flowLayoutPanel1";
-            this.flowLayoutPanel1.Size = new System.Drawing.Size(458, 39);
+            this.flowLayoutPanel1.Size = new System.Drawing.Size(474, 39);
             this.flowLayoutPanel1.TabIndex = 0;
             // 
             // confirmButton
@@ -168,11 +169,12 @@
             this.flowLayoutPanel2.Controls.Add(this.worldLoader);
             this.flowLayoutPanel2.Controls.Add(this.progressLabel);
             this.flowLayoutPanel2.Controls.Add(this.captureButton);
+            this.flowLayoutPanel2.Controls.Add(this.commandsCheckBox);
             this.flowLayoutPanel2.Dock = System.Windows.Forms.DockStyle.Fill;
             this.flowLayoutPanel2.FlowDirection = System.Windows.Forms.FlowDirection.TopDown;
             this.flowLayoutPanel2.Location = new System.Drawing.Point(3, 3);
             this.flowLayoutPanel2.Name = "flowLayoutPanel2";
-            this.flowLayoutPanel2.Size = new System.Drawing.Size(154, 391);
+            this.flowLayoutPanel2.Size = new System.Drawing.Size(154, 429);
             this.flowLayoutPanel2.TabIndex = 2;
             // 
             // label1
@@ -376,7 +378,7 @@
             this.flowLayoutPanel5.Controls.Add(this.label8);
             this.flowLayoutPanel5.Controls.Add(this.distanceBox);
             this.flowLayoutPanel5.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.flowLayoutPanel5.Location = new System.Drawing.Point(3, 400);
+            this.flowLayoutPanel5.Location = new System.Drawing.Point(3, 438);
             this.flowLayoutPanel5.Name = "flowLayoutPanel5";
             this.flowLayoutPanel5.Size = new System.Drawing.Size(154, 39);
             this.flowLayoutPanel5.TabIndex = 3;
@@ -402,11 +404,23 @@
             this.openFileDialog1.FileName = "openFileDialog1";
             this.openFileDialog1.Filter = "Text files|*.txt|All files|*.*";
             // 
+            // commandsCheckBox
+            // 
+            this.commandsCheckBox.AutoSize = true;
+            this.commandsCheckBox.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.commandsCheckBox.Location = new System.Drawing.Point(3, 394);
+            this.commandsCheckBox.Name = "commandsCheckBox";
+            this.commandsCheckBox.Size = new System.Drawing.Size(150, 22);
+            this.commandsCheckBox.TabIndex = 6;
+            this.commandsCheckBox.Text = "Commands file";
+            this.commandsCheckBox.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
+            this.commandsCheckBox.UseVisualStyleBackColor = true;
+            // 
             // PlanningForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(9F, 18F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(624, 442);
+            this.ClientSize = new System.Drawing.Size(640, 480);
             this.Controls.Add(this.tableLayoutPanel1);
             this.Font = new System.Drawing.Font("Microsoft Sans Serif", 11.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(238)));
             this.Margin = new System.Windows.Forms.Padding(4);
@@ -463,6 +477,7 @@
         private System.Windows.Forms.CheckBox curvedCheckBox;
         private System.Windows.Forms.Label progressLabel;
         private System.Windows.Forms.Button captureButton;
+        private System.Windows.Forms.CheckBox commandsCheckBox;
     }
 }
 

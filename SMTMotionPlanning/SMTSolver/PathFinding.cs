@@ -113,13 +113,6 @@ namespace SMTMotionPlanning
                 throw new IllegalConversionException();
         }
 
-        private Coordinate[] find3DPath()
-        {
-            /* Coordinate[] path;
-            return path;*/
-            throw new NotImplementedException();
-        }
-
         private BoolExpr generateWorldSizeConstraints(Context ctx, IntExpr[] sourcesX, IntExpr[] sourcesY, 
             IntExpr[] destinationsX, IntExpr[] destinationsY)
         {
@@ -251,8 +244,8 @@ namespace SMTMotionPlanning
                     case Obstacle.ObstacleType.Polygon:
                         obstacles.Add(handlePolygonalObstacle((PolygonalObstacle)world.obstacles[i], ctx, sourcesX, sourcesY,
                             destinationsX, destinationsY));
-                        //obstacles.Add(handlePolygonEndPoints((PolygonalObstacle)world.obstacles[i], ctx, sourcesX, sourcesY,
-                        //    destinationsX, destinationsY));
+                        obstacles.Add(handlePolygonEndPoints((PolygonalObstacle)world.obstacles[i], ctx, sourcesX, sourcesY,
+                            destinationsX, destinationsY));
                         break;
                     case Obstacle.ObstacleType.Ellipse:
                         obstacles.Add(handleEllipticalObstacle((EllipticalObstacle)world.obstacles[i], ctx, destinationsX, destinationsY, sourcesX, sourcesY));

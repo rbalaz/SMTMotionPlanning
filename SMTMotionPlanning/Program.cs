@@ -18,8 +18,8 @@ namespace SMTMotionPlanning
             Application.SetCompatibleTextRenderingDefault(false);
 
             PlanningForm form = new PlanningForm();
-            form.Width = 640;
-            form.Height = 480;
+            form.Width = 656;
+            form.Height = 518;
             form.Text = "Motion Planning with SMT";
             Application.Run(form);
         }
