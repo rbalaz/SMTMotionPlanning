@@ -1,9 +1,6 @@
 ﻿using System;
 using System.IO;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace SMTMotionPlanning
 {
@@ -39,7 +36,7 @@ namespace SMTMotionPlanning
             path = rescaledPath;
         }
 
-        public void generateAndSaveCommands()
+        public void generateAndSaveCommands(double zoomCoeficient)
         {
             rescalePathToOriginalDimensions();
             FileStream stream = new FileStream("commands.txt", FileMode.OpenOrCreate, FileAccess.Write);
@@ -48,9 +45,9 @@ namespace SMTMotionPlanning
             for (int i = 0; i < path.Count - 1; i++)
             {
                 double orientationChange = changeOrientation(path[i], path[i + 1], currentOrientation);
-                if (orientationChange > 3.14)
+                if (orientationChange > Math.PI)
                     orientationChange -= 2 * Math.PI;
-                if (orientationChange < -3.14)
+                if (orientationChange < -Math.PI)
                     orientationChange += 2 * Math.PI;
                 writer.WriteLine("Rotate: " + orientationChange);
                 currentOrientation += orientationChange;
@@ -59,9 +56,9 @@ namespace SMTMotionPlanning
                     length = calculateSegmentLength227(path[i], path[i + 1]);
                 else
                     length = calculateSegmentLength219(path[i], path[i + 1]);
-                writer.WriteLine("Move forward: " + length);
-                generateQboCommand(orientationChange, length);
-                generateNaoCommand(orientationChange, length);
+                writer.WriteLine("Move forward: " + length / zoomCoeficient);
+                generateQboCommand(orientationChange, length, 1.2);
+                generateNaoCommand(orientationChange, length, 1.2);
             }
             writer.Close();
             stream.Close();
@@ -71,7 +68,7 @@ namespace SMTMotionPlanning
             foreach (string line in QboCommands)
             {
                 writer.Write("rostopic pub -1 /cmd_vel geometry_msgs/Twist");
-                writer.Write(" " + line);
+                writer.WriteLine(" " + line);
             }
             writer.Close();
             stream.Close();
@@ -816,29 +813,41 @@ namespace SMTMotionPlanning
             return 0;
         }
 
-        private void generateQboCommand(double orientationChange, double distance)
+        private void generateQboCommand(double orientationChange, double distance, double zoomCoeficient)
         {
             // rostopic pub -1 /cmd_vel geometry_msgs/Twist [1,0,0] [0,0,0]
             // 1    ... 45 counter-clockwise
             // 1/45 ...  1 counter-clockwise
-            string roundedOrientationChange = string.Format("{0:F2}", 4 * orientationChange / Math.PI);
+            string roundedOrientationChange = string.Format("{0:F2}", -4 * orientationChange / Math.PI);
             QboCommands.Add("[0,0,0] [0,0," + roundedOrientationChange.Replace(",", ".") + "]");
-            // distance command
-            string roundedDistance = string.Format("{0:F2}", distance / 52.0);
-            string movementDirectionCorrection = string.Format("{0:F2}", distance / 104.0);
-            // 1    ... 52cm
-            // 1/52 ...  1cm
-            QboCommands.Add("[" + roundedDistance.Replace(",", ".") + ",0,0] [0,0," + movementDirectionCorrection + "]");
+            // distance command           
+            double QboDistance = distance / (53 * zoomCoeficient);
+            int maxActionCounter = 0;
+            while (QboDistance > 1)
+            {
+                QboDistance -= 1;
+                maxActionCounter++;
+            }
+            string roundedDistance = string.Format("{0:F2}", QboDistance);
+            string movementDirectionCorrection = string.Format("{0:F2}", -0.7 * QboDistance);
+            // 1    ... 53cm
+            // 1/53 ...  1cm
+            for (int i = 0; i < maxActionCounter; i++)
+            {
+                QboCommands.Add("[1,0,0] [0,0,-0.7]");
+            }
+            QboCommands.Add("[" + roundedDistance.Replace(",", ".") + ",0,0] [0,0," 
+                + movementDirectionCorrection.Replace(",",".") + "]");
         }
 
-        private void generateNaoCommand(double orientationChange, double distance)
+        private void generateNaoCommand(double orientationChange, double distance, double zoomCoeficient)
         {
             // motion.moveTo(0, 0, 3.14)
             // orientation change
-            string roundedOrientationChange = string.Format("{0:F2}", orientationChange);
+            string roundedOrientationChange = string.Format("{0:F2}", -orientationChange);
             NaoCommands.Add("[0,0," + roundedOrientationChange.Replace(",", ".") + "]");
             // Nao 9 moves approximately 22.5% more than he should
-            string roundedDistance = string.Format("{0:F2}", distance / 122.5);
+            string roundedDistance = string.Format("{0:F2}", distance / (122.5 * zoomCoeficient));
             string movementDirectionCorrection = "0.03";
             NaoCommands.Add("[" + roundedDistance.Replace(",", ".") + "," + movementDirectionCorrection + ",0]");
         }

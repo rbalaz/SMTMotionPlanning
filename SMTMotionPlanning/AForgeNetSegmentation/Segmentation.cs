@@ -51,8 +51,8 @@ namespace SMTMotionPlanning
             // step 2 - locating objects
             BlobCounter blobCounter = new BlobCounter();
             blobCounter.FilterBlobs = true;
-            blobCounter.MinHeight = 5;
-            blobCounter.MinWidth = 5;
+            blobCounter.MinHeight = 10;
+            blobCounter.MinWidth = 10;
             blobCounter.ProcessImage(bitmapData);
             Blob[] blobs = blobCounter.GetObjectsInformation();
             bitmap.UnlockBits(bitmapData);
@@ -384,7 +384,7 @@ namespace SMTMotionPlanning
             string path = @"C:\Users\Robert\Documents\Visual Studio 2015\Projects\SMTMotionPlanning\SMTMotionPlanning\obstacleFiles\";
             FileStream readStream = new FileStream(path + "obstacles.txt", FileMode.Open, FileAccess.Read);
             StreamReader reader = new StreamReader(readStream);
-            FileStream writeStream = new FileStream(path + "new_obstacles.txt", FileMode.OpenOrCreate, FileAccess.Write);
+            FileStream writeStream = new FileStream(path + "new_obstacles.txt", FileMode.Create, FileAccess.Write);
             StreamWriter writer = new StreamWriter(writeStream);
             string line;
             // 1280x800 will not fit, resizing is needed

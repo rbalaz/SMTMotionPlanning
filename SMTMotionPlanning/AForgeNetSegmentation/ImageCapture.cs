@@ -21,7 +21,7 @@ namespace SMTMotionPlanning
             string[] segments = source.Split('.');
             string[] moreSegments = segments[3].Split('/');
             string path = new DirectoryInfo(Environment.CurrentDirectory).Parent.Parent.Parent.FullName;
-            path = Path.Combine(path, @"Pictures");
+            path = Path.Combine(path, @"Pictures\");
             image.Save(path + "fromCamera" + moreSegments[0] + ".png");
         }
 

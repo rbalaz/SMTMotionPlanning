@@ -6,6 +6,7 @@ using System.Linq;
 using System.Windows.Forms;
 using System.IO;
 using System.Threading;
+using System.Drawing.Imaging;
 
 namespace SMTMotionPlanning
 {
@@ -146,7 +147,7 @@ namespace SMTMotionPlanning
                     {
                         PathCommandsGenerator generator = new PathCommandsGenerator(227, path);
                         generator.initialOrientation = 0.0;
-                        generator.generateAndSaveCommands();
+                        generator.generateAndSaveCommands(1.2);
                     }
                     pathCalculated = true;
                     progressLabel.Text = "Path calculated.";
@@ -596,9 +597,12 @@ namespace SMTMotionPlanning
                 try
                 {
                     Coordinate[] newPath = null;
-                    Thread optimiser = new Thread(() => newPath = finder.findPath());
+                    Exception exception = null;
+                    Thread optimiser = new Thread(() => SafeExecute(() => newPath = finder.findPath(), out exception));
                     optimiser.Start();
                     bool success = optimiser.Join(1500);
+                    if (exception != null)
+                        break;
                     if (success == true)
                     {
                         paths.Add(newPath);
@@ -617,6 +621,19 @@ namespace SMTMotionPlanning
                 {
                     break;
                 }
+            }
+        }
+
+        private void SafeExecute(Action test, out Exception exception)
+        {
+            exception = null;
+            try
+            {
+                test.Invoke();
+            }
+            catch (Exception ex)
+            {
+                exception = ex;
             }
         }
 
@@ -703,6 +720,42 @@ namespace SMTMotionPlanning
                 clone.Add(new Coordinate(coords.x, coords.y));
             }
             return clone;
+        }
+
+        private void drawButton_Click(object sender, EventArgs e)
+        {
+            string path = new DirectoryInfo(Environment.CurrentDirectory).Parent.Parent.Parent.FullName;
+            path = Path.Combine(path, @"Pictures");
+            openFileDialog1.Filter = "Png Images(*.png)|*.png|Jpeg Images(*.jpg)|*.jpg|Bitmaps(*.bmp)|*.bmp";
+            openFileDialog1.InitialDirectory = path;
+            if (openFileDialog1.ShowDialog() == DialogResult.OK)
+            {
+                Bitmap image = new Bitmap(openFileDialog1.FileName);
+                Graphics imageGraphics = Graphics.FromImage(image);
+                Pen imagePen = new Pen(Color.Red);
+                if (world.width != image.Width || world.length != image.Height)
+                {
+                    List<Coordinate> rescaledPath = new List<Coordinate>();
+                    foreach (Coordinate c in this.path)
+                    {
+                        Coordinate rescaled = new Coordinate(c.x * image.Width / world.width, c.y * image.Height / world.length);
+                        rescaledPath.Add(rescaled);
+                    }
+                    for (int i = 0; i < rescaledPath.Count - 1; i++)
+                    {
+                        imageGraphics.DrawLine(imagePen, rescaledPath[i].x, rescaledPath[i].y, rescaledPath[i + 1].x, rescaledPath[i + 1].y);
+                    }
+                }
+                else
+                {
+                    for(int i = 0; i < this.path.Count - 1; i++)
+                    {
+                        imageGraphics.DrawLine(imagePen, this.path[i].x, this.path[i].y, this.path[i + 1].x, this.path[i + 1].y);
+                    }
+                }
+                Directory.SetCurrentDirectory(path);
+                image.Save("imagePath.png", ImageFormat.Png);
+            }
         }
     }
 }

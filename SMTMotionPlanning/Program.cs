@@ -1,7 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using System.Windows.Forms;
 
 namespace SMTMotionPlanning
@@ -18,8 +15,8 @@ namespace SMTMotionPlanning
             Application.SetCompatibleTextRenderingDefault(false);
 
             PlanningForm form = new PlanningForm();
-            form.Width = 656;
-            form.Height = 518;
+            form.Width = 672;
+            form.Height = 556;
             form.Text = "Motion Planning with SMT";
             Application.Run(form);
         }
