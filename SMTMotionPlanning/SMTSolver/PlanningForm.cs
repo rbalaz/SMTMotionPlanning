@@ -66,7 +66,7 @@ namespace SMTMotionPlanning
                 {
                     if (int.TryParse(widthEntryBox.Text, out width) && int.TryParse(lengthEntryBox.Text, out length))
                     {
-                        world = new Space2D(width, length);
+                        world = new Space(width, length);
                         if (checkIfAgentIsInWorld() == false)
                         {
                             showParameterError();
@@ -120,7 +120,7 @@ namespace SMTMotionPlanning
                 progressLabel.Text = "Finding path...";
                 progressLabel.Invalidate();
                 int pathSegments = 0;
-                for (int i = 1; i <= 30; i++)
+                for (int i = 1; i <= 15; i++)
                 {
                     PathFinding finder = new PathFinding(agent.currentLocation, goalLocation, i, distance, 50000, world, curvedPath);
                     try
@@ -147,7 +147,7 @@ namespace SMTMotionPlanning
                     {
                         PathCommandsGenerator generator = new PathCommandsGenerator(227, path);
                         generator.initialOrientation = 0.0;
-                        generator.generateAndSaveCommands(1.2);
+                        generator.generateAndSaveCommands(1.52);
                     }
                     pathCalculated = true;
                     progressLabel.Text = "Path calculated.";
@@ -206,7 +206,7 @@ namespace SMTMotionPlanning
                     else
                         throw new IOException();
                 }
-                world = new Space2D(width, length);
+                world = new Space(width, length);
             }
         }
 
@@ -724,37 +724,45 @@ namespace SMTMotionPlanning
 
         private void drawButton_Click(object sender, EventArgs e)
         {
-            string path = new DirectoryInfo(Environment.CurrentDirectory).Parent.Parent.Parent.FullName;
-            path = Path.Combine(path, @"Pictures");
-            openFileDialog1.Filter = "Png Images(*.png)|*.png|Jpeg Images(*.jpg)|*.jpg|Bitmaps(*.bmp)|*.bmp";
-            openFileDialog1.InitialDirectory = path;
-            if (openFileDialog1.ShowDialog() == DialogResult.OK)
+            if (this.path == null)
             {
-                Bitmap image = new Bitmap(openFileDialog1.FileName);
-                Graphics imageGraphics = Graphics.FromImage(image);
-                Pen imagePen = new Pen(Color.Red);
-                if (world.width != image.Width || world.length != image.Height)
+                MessageBox.Show("Path needs to be calculated before it can be drown on a selected picture.", "Path error",
+                    MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+            else
+            {
+                string path = new DirectoryInfo(Environment.CurrentDirectory).Parent.Parent.Parent.FullName;
+                path = Path.Combine(path, @"Pictures");
+                openFileDialog1.Filter = "Png Images(*.png)|*.png|Jpeg Images(*.jpg)|*.jpg|Bitmaps(*.bmp)|*.bmp";
+                openFileDialog1.InitialDirectory = path;
+                if (openFileDialog1.ShowDialog() == DialogResult.OK)
                 {
-                    List<Coordinate> rescaledPath = new List<Coordinate>();
-                    foreach (Coordinate c in this.path)
+                    Bitmap image = new Bitmap(openFileDialog1.FileName);
+                    Graphics imageGraphics = Graphics.FromImage(image);
+                    Pen imagePen = new Pen(Color.Red);
+                    if (world.width != image.Width || world.length != image.Height)
                     {
-                        Coordinate rescaled = new Coordinate(c.x * image.Width / world.width, c.y * image.Height / world.length);
-                        rescaledPath.Add(rescaled);
+                        List<Coordinate> rescaledPath = new List<Coordinate>();
+                        foreach (Coordinate c in this.path)
+                        {
+                            Coordinate rescaled = new Coordinate(c.x * image.Width / world.width, c.y * image.Height / world.length);
+                            rescaledPath.Add(rescaled);
+                        }
+                        for (int i = 0; i < rescaledPath.Count - 1; i++)
+                        {
+                            imageGraphics.DrawLine(imagePen, rescaledPath[i].x, rescaledPath[i].y, rescaledPath[i + 1].x, rescaledPath[i + 1].y);
+                        }
                     }
-                    for (int i = 0; i < rescaledPath.Count - 1; i++)
+                    else
                     {
-                        imageGraphics.DrawLine(imagePen, rescaledPath[i].x, rescaledPath[i].y, rescaledPath[i + 1].x, rescaledPath[i + 1].y);
+                        for (int i = 0; i < this.path.Count - 1; i++)
+                        {
+                            imageGraphics.DrawLine(imagePen, this.path[i].x, this.path[i].y, this.path[i + 1].x, this.path[i + 1].y);
+                        }
                     }
+                    Directory.SetCurrentDirectory(path);
+                    image.Save("imagePath.png", ImageFormat.Png);
                 }
-                else
-                {
-                    for(int i = 0; i < this.path.Count - 1; i++)
-                    {
-                        imageGraphics.DrawLine(imagePen, this.path[i].x, this.path[i].y, this.path[i + 1].x, this.path[i + 1].y);
-                    }
-                }
-                Directory.SetCurrentDirectory(path);
-                image.Save("imagePath.png", ImageFormat.Png);
             }
         }
     }

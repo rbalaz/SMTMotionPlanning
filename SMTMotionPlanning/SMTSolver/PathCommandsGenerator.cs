@@ -57,8 +57,8 @@ namespace SMTMotionPlanning
                 else
                     length = calculateSegmentLength219(path[i], path[i + 1]);
                 writer.WriteLine("Move forward: " + length / zoomCoeficient);
-                generateQboCommand(orientationChange, length, 1.2);
-                generateNaoCommand(orientationChange, length, 1.2);
+                generateQboCommand(orientationChange, length, zoomCoeficient);
+                generateNaoCommand(orientationChange, length, zoomCoeficient);
             }
             writer.Close();
             stream.Close();
@@ -818,11 +818,44 @@ namespace SMTMotionPlanning
             // rostopic pub -1 /cmd_vel geometry_msgs/Twist [1,0,0] [0,0,0]
             // 1    ... 45 counter-clockwise
             // 1/45 ...  1 counter-clockwise
-            string roundedOrientationChange = string.Format("{0:F2}", -4 * orientationChange / Math.PI);
-            QboCommands.Add("[0,0,0] [0,0," + roundedOrientationChange.Replace(",", ".") + "]");
-            // distance command           
-            double QboDistance = distance / (53 * zoomCoeficient);
+            // Past [0,0,0] [0,0,|2|], Qbo starts to behave in a non-linear fashion, setting the threshold 
+            // of his orientation change to |2| 
+            double QboOrientationChange = -4 * orientationChange / Math.PI;
+            bool negativeChange = QboOrientationChange < 0 ? true : false;
             int maxActionCounter = 0;
+            if (negativeChange)
+            {
+                while (QboOrientationChange < -2)
+                {
+                    QboOrientationChange += 2;
+                    maxActionCounter++;
+                }
+                for (int i = 0; i < maxActionCounter; i++)
+                {
+                    QboCommands.Add("[0,0,0] [0,0,-1.9]");
+                }
+            }
+            else
+            {
+                while (QboOrientationChange > 2)
+                {
+                    QboOrientationChange -= 2;
+                    maxActionCounter++;
+                }
+                for (int i = 0; i < maxActionCounter; i++)
+                {
+                    QboCommands.Add("[0,0,0] [0,0,1.9]");
+                }
+            }
+            string roundedOrientationChange = string.Format("{0:F2}", QboOrientationChange);
+            QboCommands.Add("[0,0,0] [0,0," + roundedOrientationChange.Replace(",", ".") + "]");
+            // distance command 
+            // 1    ... 53cm
+            // 1/53 ...  1cm     
+            // Giving command higher than [1,0,0] [0,0,-0.7] does little change, which indicates non-linear behaviour
+            // Threshold for forward actions is set to 1     
+            double QboDistance = distance / (55 * zoomCoeficient);
+            maxActionCounter = 0;
             while (QboDistance > 1)
             {
                 QboDistance -= 1;
@@ -830,8 +863,6 @@ namespace SMTMotionPlanning
             }
             string roundedDistance = string.Format("{0:F2}", QboDistance);
             string movementDirectionCorrection = string.Format("{0:F2}", -0.7 * QboDistance);
-            // 1    ... 53cm
-            // 1/53 ...  1cm
             for (int i = 0; i < maxActionCounter; i++)
             {
                 QboCommands.Add("[1,0,0] [0,0,-0.7]");
@@ -844,7 +875,7 @@ namespace SMTMotionPlanning
         {
             // motion.moveTo(0, 0, 3.14)
             // orientation change
-            string roundedOrientationChange = string.Format("{0:F2}", -orientationChange);
+            string roundedOrientationChange = string.Format("{0:F2}", -0.9 * orientationChange);
             NaoCommands.Add("[0,0," + roundedOrientationChange.Replace(",", ".") + "]");
             // Nao 9 moves approximately 22.5% more than he should
             string roundedDistance = string.Format("{0:F2}", distance / (122.5 * zoomCoeficient));

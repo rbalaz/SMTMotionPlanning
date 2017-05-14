@@ -167,7 +167,6 @@
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="SMTSolver\Space.cs" />
-    <Compile Include="SMTSolver\Space2D.cs" />
     <Compile Include="SMTSolver\SplineObstacle.cs" />
     <EmbeddedResource Include="AForgeNetSegmentation\SegmentationForm.resx">
       <DependentUpon>SegmentationForm.cs</DependentUpon>

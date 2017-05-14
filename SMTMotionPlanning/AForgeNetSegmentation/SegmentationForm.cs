@@ -37,32 +37,39 @@ namespace SMTMotionPlanning
 
         private void executeButton_Click(object sender, EventArgs e)
         {
-            greenBounds[0] = greenLowerBar.Value;
-            greenBounds[1] = greenUpperBar.Value;
-            redBounds[0] = redLowerBar.Value;
-            redBounds[1] = redUpperBar.Value;
-            blueBounds[0] = blueLowerBar.Value;
-            blueBounds[1] = blueUpperBar.Value;
-            if (greenBounds[0] < greenBounds[1] && redBounds[0] < redBounds[1] && blueBounds[0] < blueBounds[1])
+            if (image == null)
             {
-                Segmentation segmentation = new Segmentation(redBounds, greenBounds, blueBounds, minimumCornerDistance,
-                    originalImageHeight, originalImageWidth);
-                Bitmap resizedImage = ResizeImage(image, 485, 281);
-                Thread segmentiser = new Thread(() => segmentation.ProcessImage(resizedImage));
-                segmentiser.Start();
-                bool success = segmentiser.Join(10000);
-                if (success == true)
-                {
-                    Rectangle rect = new Rectangle(5, 286, 485, 281);
-                    tableLayoutGraphics.DrawImage(resizedImage, rect);
-                }
-                else
-                    MessageBox.Show("Segmentation failed. Please try different color borders.", "Segmentation error",
-                        MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show("Image not loaded.", "Image error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
             else
-                MessageBox.Show("Invalid background color boundary settings. Lower boundary must be lower than upper boundary",
-                    "Background boundaries error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            {
+                greenBounds[0] = greenLowerBar.Value;
+                greenBounds[1] = greenUpperBar.Value;
+                redBounds[0] = redLowerBar.Value;
+                redBounds[1] = redUpperBar.Value;
+                blueBounds[0] = blueLowerBar.Value;
+                blueBounds[1] = blueUpperBar.Value;
+                if (greenBounds[0] < greenBounds[1] && redBounds[0] < redBounds[1] && blueBounds[0] < blueBounds[1])
+                {
+                    Segmentation segmentation = new Segmentation(redBounds, greenBounds, blueBounds, minimumCornerDistance,
+                        originalImageHeight, originalImageWidth);
+                    Bitmap resizedImage = ResizeImage(image, 485, 281);
+                    Thread segmentiser = new Thread(() => segmentation.ProcessImage(resizedImage));
+                    segmentiser.Start();
+                    bool success = segmentiser.Join(10000);
+                    if (success == true)
+                    {
+                        Rectangle rect = new Rectangle(5, 286, 485, 281);
+                        tableLayoutGraphics.DrawImage(resizedImage, rect);
+                    }
+                    else
+                        MessageBox.Show("Segmentation failed. Please try different color borders.", "Segmentation error",
+                            MessageBoxButtons.OK, MessageBoxIcon.Error);
+                }
+                else
+                    MessageBox.Show("Invalid background color boundary settings. Lower boundary must be lower than upper boundary",
+                        "Background boundaries error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
 
         }
 

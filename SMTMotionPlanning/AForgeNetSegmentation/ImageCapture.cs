@@ -2,6 +2,7 @@
 using Emgu.CV.Structure;
 using System;
 using System.IO;
+using System.Threading;
 
 namespace SMTMotionPlanning
 {
@@ -27,8 +28,12 @@ namespace SMTMotionPlanning
 
         private Mat capture(string address)
         {
-            Capture cameraCapture;
-            cameraCapture = new Capture(address);
+            Capture cameraCapture = null;
+            Thread captureThread = new Thread(() => cameraCapture = new Capture(address));
+            captureThread.Start();
+            bool success = captureThread.Join(5000);
+            if (success == false)
+                throw new CameraNotFoundException();
             Mat frame = cameraCapture.QueryFrame();
             if (frame == null)
                 throw new CameraNotFoundException();
