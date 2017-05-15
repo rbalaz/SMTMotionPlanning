@@ -135,7 +135,10 @@ namespace SMTMotionPlanning
                     break;
                 }
                 if (path.Count == 0)
+                {
+                    progressLabel.Text = "Path not found.";
                     showPathError("There is no clear available path to goal location.");
+                }
                 else
                 {
                     paths.Add(path.ToArray());
@@ -181,7 +184,7 @@ namespace SMTMotionPlanning
         private void worldLoader_Click(object sender, EventArgs e)
         {
             // Expected format used for world in file:
-            // 2D or 3D 
+            // 2D
             // w number
             // l number
             // h number(only if 3D)
