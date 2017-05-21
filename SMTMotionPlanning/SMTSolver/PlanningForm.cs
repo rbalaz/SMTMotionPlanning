@@ -105,6 +105,7 @@ namespace SMTMotionPlanning
             world = null;
             pathCalculated = false;
             runIssue = false;
+            pathDrawn = false;
             progressLabel.Text = "";
             Invalidate();
             Refresh();
@@ -120,7 +121,7 @@ namespace SMTMotionPlanning
                 progressLabel.Text = "Finding path...";
                 progressLabel.Invalidate();
                 int pathSegments = 0;
-                for (int i = 1; i <= 15; i++)
+                for (int i = 1; i <= 20; i++)
                 {
                     PathFinding finder = new PathFinding(agent.currentLocation, goalLocation, i, distance, 50000, world, curvedPath);
                     try
@@ -149,11 +150,12 @@ namespace SMTMotionPlanning
                     if (commandsCheckBox.Checked == true)
                     {
                         PathCommandsGenerator generator = new PathCommandsGenerator(227, path);
-                        generator.initialOrientation = 0.0;
-                        generator.generateAndSaveCommands(1.52);
+                        generator.initialOrientation = 0;
+                        generator.generateAndSaveCommands(1.35);
                     }
                     pathCalculated = true;
                     progressLabel.Text = "Path calculated.";
+                    savePaths();
                 }
             }
             else
@@ -589,9 +591,8 @@ namespace SMTMotionPlanning
             }
             double bestFitness = evaluateFitnessValueOfPath(this.path.ToArray());
 
-
-            int decrementor = pathLength / 10;
-            int decrementorChange = (int)(decrementor / 10);
+            int decrementor = pathLength / 25;
+            bool hasFailed = false;
             while (decrementor > 0)
             {
                 pathLength -= decrementor;
@@ -603,9 +604,17 @@ namespace SMTMotionPlanning
                     Exception exception = null;
                     Thread optimiser = new Thread(() => SafeExecute(() => newPath = finder.findPath(), out exception));
                     optimiser.Start();
-                    bool success = optimiser.Join(1500);
+                    bool success = optimiser.Join(750);
                     if (exception != null)
-                        break;
+                    {
+                        if (hasFailed)
+                            break;
+                        else
+                        {
+                            hasFailed = true;
+                            continue;
+                        }
+                    }
                     if (success == true)
                     {
                         paths.Add(newPath);
@@ -618,7 +627,15 @@ namespace SMTMotionPlanning
                         }
                     }
                     else
-                        return;
+                    {
+                        if (hasFailed)
+                            break;
+                        else
+                        {
+                            hasFailed = true;
+                            continue;
+                        }
+                    }
                 }
                 catch (PathFinding.TestFailedException)
                 {
@@ -715,14 +732,20 @@ namespace SMTMotionPlanning
             segForm.Show();
         }
 
-        private List<Coordinate> clonePath(List<Coordinate> path)
+        private void savePaths()
         {
-            List<Coordinate> clone = new List<Coordinate>();
-            foreach (Coordinate coords in path)
+            FileStream pathFiles = new FileStream("paths.txt", FileMode.Create, FileAccess.Write);
+            StreamWriter writer = new StreamWriter(pathFiles);
+            foreach (Coordinate[] path in paths)
             {
-                clone.Add(new Coordinate(coords.x, coords.y));
+                for (int i = 0; i < path.Length; i++)
+                {
+                    writer.Write(path[i].x + " " + path[i].y + " ");
+                }
+                writer.WriteLine();
             }
-            return clone;
+            writer.Close();
+            pathFiles.Close();
         }
 
         private void drawButton_Click(object sender, EventArgs e)
@@ -742,7 +765,7 @@ namespace SMTMotionPlanning
                 {
                     Bitmap image = new Bitmap(openFileDialog1.FileName);
                     Graphics imageGraphics = Graphics.FromImage(image);
-                    Pen imagePen = new Pen(Color.Red);
+                    Pen imagePen = new Pen(Color.Red, 4);
                     if (world.width != image.Width || world.length != image.Height)
                     {
                         List<Coordinate> rescaledPath = new List<Coordinate>();

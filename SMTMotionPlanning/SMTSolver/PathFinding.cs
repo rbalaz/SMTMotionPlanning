@@ -77,8 +77,6 @@ namespace SMTMotionPlanning
             s.Assert(pathLengthConstraint);
 
             Status status = s.Check();
-            if (status == Status.UNKNOWN)
-                throw new NullReferenceException();
             if (status != Status.SATISFIABLE)
                 throw new TestFailedException();
 
@@ -89,6 +87,18 @@ namespace SMTMotionPlanning
             }
             path[pathSegments] = new Coordinate(convertExprToInt(s.Model.ConstInterp(destinationsX[pathSegments - 1])),
                 convertExprToInt(s.Model.ConstInterp(destinationsY[pathSegments - 1])));
+
+            FileStream stream = new FileStream("solverinputs.txt", FileMode.Create, FileAccess.Write);
+            StreamWriter writer = new StreamWriter(stream);
+            writer.WriteLine(worldSizeConstraints.ToString());
+            writer.WriteLine(movementConstraints.ToString());
+            writer.WriteLine(orthogonalConstraints.ToString());
+            writer.WriteLine(prerequisitesConstraints.ToString());
+            writer.WriteLine(joiningPathSegments.ToString());
+            writer.WriteLine(avoidingObstacles.ToString());
+            writer.WriteLine(pathLengthConstraint.ToString());
+            writer.Close();
+            stream.Close();
 
             return path;
         }
@@ -299,42 +309,6 @@ namespace SMTMotionPlanning
                 return ctx.MkAnd(avoidingCircle);
             }
         }
-
-        //private BoolExpr handleEllipticalObstacle(EllipticalObstacle obstacle, Context ctx, IntExpr[] destinationsX,
-        //    IntExpr[] destinationsY, IntExpr[] sourcesX, IntExpr[] sourcesY)
-        //{
-        //    if (obstacle.length != obstacle.width)
-        //    {
-        //        RectangularObstacle rectangle = new RectangularObstacle(obstacle.length, obstacle.width,
-        //            new Coordinate(obstacle.location.x - obstacle.width / 2, obstacle.location.y - obstacle.length / 2));
-        //        return handleRectangularObstacle(rectangle, ctx, sourcesX, sourcesY, destinationsX, destinationsY);
-        //    }
-        //    else
-        //    {
-        //        BoolExpr[] avoidingCircle = new BoolExpr[pathSegments];
-        //        NumberFormatInfo dot = new NumberFormatInfo();
-        //        dot.NumberDecimalSeparator = ".";
-        //        for (int i = 0; i < pathSegments; i++)
-        //        {
-        //            double radius = obstacle.length / 2.0 + obstaclePassDistance;
-        //            IntExpr x0 = ctx.MkInt(obstacle.location.x);
-        //            IntExpr y0 = ctx.MkInt(obstacle.location.y);
-        //            IntExpr r = ctx.MkInt((Math.Floor(radius).ToString(dot)));
-        //            ArithExpr dx = ctx.MkSub(destinationsX[i], sourcesX[i]);
-        //            ArithExpr dy = ctx.MkSub(destinationsY[i], sourcesY[i]);
-        //            ArithExpr fx = ctx.MkSub(sourcesX[i], x0);
-        //            ArithExpr fy = ctx.MkSub(sourcesY[i], y0);
-        //            ArithExpr a = ctx.MkAdd(ctx.MkMul(dx, dx), ctx.MkMul(dy, dy));
-        //            ArithExpr b = ctx.MkMul(ctx.MkAdd(ctx.MkMul(dx, fx), ctx.MkMul(dy, fy)), ctx.MkInt(2));
-        //            ArithExpr c = ctx.MkSub(ctx.MkAdd(ctx.MkMul(fx, fx), ctx.MkMul(fy, fy)), ctx.MkMul(r, r));
-        //            ArithExpr discriminant = ctx.MkSub(ctx.MkMul(b, b), ctx.MkMul(ctx.MkInt(4), a, c));
-        //            BoolExpr final = ctx.MkLe(discriminant, ctx.MkInt(0));
-
-        //            avoidingCircle[i] = final;
-        //        }
-        //        return ctx.MkAnd(avoidingCircle);
-        //    }
-        //}
 
         private BoolExpr handleRectangularObstacle(RectangularObstacle obstacle, Context ctx, IntExpr[] sourcesX, 
             IntExpr[] sourcesY, IntExpr[] destinationsX, IntExpr[] destinationsY)
@@ -551,5 +525,6 @@ namespace SMTMotionPlanning
 
             return ctx.MkAnd(avoidingLines);
         }
+
     }
 }

@@ -423,8 +423,8 @@ namespace SMTMotionPlanning
             int adjustedY = int.Parse(ellipseSegments[2]) * originalImageHeight / 281;
             int adjustedWidth = int.Parse(ellipseSegments[3]) * originalImageWidth / 485;
             int adjustedHeight = int.Parse(ellipseSegments[4]) * originalImageHeight / 281;
-            string adjustedEllipse = ellipseSegments[0] + " " + adjustedX + " " + adjustedY + " " +
-                adjustedWidth + " " + adjustedHeight;
+            string adjustedEllipse = ellipseSegments[0] + " " + (adjustedX + adjustedWidth) + " " + (adjustedY + adjustedHeight) 
+                + " " + adjustedWidth + " " + adjustedHeight;
             return adjustedEllipse;
         }
         private string adjustPointsShape(string[] points)
