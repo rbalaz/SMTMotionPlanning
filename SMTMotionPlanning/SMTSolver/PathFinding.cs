@@ -88,18 +88,6 @@ namespace SMTMotionPlanning
             path[pathSegments] = new Coordinate(convertExprToInt(s.Model.ConstInterp(destinationsX[pathSegments - 1])),
                 convertExprToInt(s.Model.ConstInterp(destinationsY[pathSegments - 1])));
 
-            FileStream stream = new FileStream("solverinputs.txt", FileMode.Create, FileAccess.Write);
-            StreamWriter writer = new StreamWriter(stream);
-            writer.WriteLine(worldSizeConstraints.ToString());
-            writer.WriteLine(movementConstraints.ToString());
-            writer.WriteLine(orthogonalConstraints.ToString());
-            writer.WriteLine(prerequisitesConstraints.ToString());
-            writer.WriteLine(joiningPathSegments.ToString());
-            writer.WriteLine(avoidingObstacles.ToString());
-            writer.WriteLine(pathLengthConstraint.ToString());
-            writer.Close();
-            stream.Close();
-
             return path;
         }
 

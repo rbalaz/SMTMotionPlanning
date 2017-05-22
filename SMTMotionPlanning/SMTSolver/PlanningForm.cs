@@ -155,7 +155,6 @@ namespace SMTMotionPlanning
                     }
                     pathCalculated = true;
                     progressLabel.Text = "Path calculated.";
-                    savePaths();
                 }
             }
             else
@@ -730,22 +729,6 @@ namespace SMTMotionPlanning
         {
             SegmentationForm segForm = new SegmentationForm();
             segForm.Show();
-        }
-
-        private void savePaths()
-        {
-            FileStream pathFiles = new FileStream("paths.txt", FileMode.Create, FileAccess.Write);
-            StreamWriter writer = new StreamWriter(pathFiles);
-            foreach (Coordinate[] path in paths)
-            {
-                for (int i = 0; i < path.Length; i++)
-                {
-                    writer.Write(path[i].x + " " + path[i].y + " ");
-                }
-                writer.WriteLine();
-            }
-            writer.Close();
-            pathFiles.Close();
         }
 
         private void drawButton_Click(object sender, EventArgs e)

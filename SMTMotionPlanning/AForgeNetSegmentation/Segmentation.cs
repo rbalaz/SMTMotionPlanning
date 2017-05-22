@@ -121,6 +121,7 @@ namespace SMTMotionPlanning
             writer.Close();
             stream.Close();
             g.Dispose();
+            rescaleCoordinates();
             transformCoordinates();
         }
 
@@ -376,6 +377,30 @@ namespace SMTMotionPlanning
             }
 
             return matchingEdges / getDistanceBetweenTwoPoints(firstCorner, secondCorner);
+        }
+
+        private void rescaleCoordinates()
+        {
+            string path = @"C:\Users\Robert\Documents\Visual Studio 2015\Projects\SMTMotionPlanning\SMTMotionPlanning\obstacleFiles\";
+            FileStream readStream = new FileStream(path + "obstacles.txt", FileMode.Open, FileAccess.Read);
+            StreamReader reader = new StreamReader(readStream);
+            FileStream originalStream = new FileStream(path + "original_obstacles.txt", FileMode.Create, FileAccess.Write);
+            StreamWriter originalWriter = new StreamWriter(originalStream);
+            string line;
+            while ((line = reader.ReadLine()) != null)
+            {
+                string[] lineSegments = line.Split(' ');
+                if (lineSegments[0] == "r")
+                    originalWriter.WriteLine(adjustRectangle(lineSegments));
+                if (lineSegments[0] == "e")
+                    originalWriter.WriteLine(adjustEllipse(lineSegments));
+                if (lineSegments[0] == "s" || lineSegments[0] == "p")
+                    originalWriter.WriteLine(adjustPointsShape(lineSegments));
+            }
+            originalWriter.Close();
+            originalStream.Close();
+            reader.Close();
+            readStream.Close();
         }
 
         private void transformCoordinates()
